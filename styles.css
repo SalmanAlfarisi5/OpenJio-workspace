@@ -1,0 +1,40 @@
+body {
+    background-color: #25272a;
+    color: honeydew;
+    font-family: 'Trebuchet MS', sans-serif;
+}
+
+a {
+    color: yellowgreen;
+}
+
+#html-logo {
+    width: 300px;
+    height: 176px
+}
+
+.long-div {
+    font-style: italic;
+}
+
+.short-div {
+    font-variant: small-caps;
+}
+
+button {
+    background-color: black;
+    color: white;
+    border: solid rgb(160, 78, 146) 3px;
+    border-radius: 15px;
+    margin-left: 5px;
+    padding: 5px 8px 5px 8px;
+}
+
+#useless-button {
+    border-radius: 0;
+}
+
+button:hover {
+    font-weight: bold;
+    border-radius: 5px;
+}
