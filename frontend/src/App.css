@@ -1,10 +1,51 @@
+/* App.css */
 .App {
-    background-image: url("C:\Users\Muhammad Salman\Documents\NUS\Courses\Orbital\OpenJio-workspace\React Project\frontend\public\background.jpg");
-    background-size: cover; /* This ensures the image covers the entire area */
-    background-repeat: no-repeat; /* This prevents the image from repeating */
-    background-position: center center; /* Centers the background image */
-    height: 100vh; /* Ensures the background covers the full height */
-    margin: 0;
-    padding: 0;
-  }
-  
+  background-image: url("C:\Users\Muhammad Salman\Documents\NUS\Courses\Orbital\OpenJio-workspace\frontend\public\background.jpg");
+  background-size: cover; /* Ensure the image covers the entire area */
+  background-repeat: no-repeat; /* Prevent the image from repeating */
+  background-position: center center; /* Center the background image */
+  height: 100vh; /* Ensure the background covers the full height */
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  flex-direction: column;
+}
+
+.logo {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 200px; /* Adjust size as needed */
+}
+
+
+.buttons-container {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  display: flex;
+
+}
+
+.button {
+  border: none; /* Remove default border */
+
+  background: none; /* Remove default background */
+  color: white;
+  cursor: pointer; /* Add pointer cursor on hover */
+
+  width: 160px; /* Set button width */
+  height: 80px; /* Set button height */
+
+}
+
+.button-link {
+  font-size: 20px; /* Set desired font size */
+}
+
+.text {
+  color: white;
+  right: 80px;
+}
