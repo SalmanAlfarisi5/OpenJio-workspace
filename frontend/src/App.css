@@ -1,0 +1,10 @@
+.App {
+    background-image: url("C:\Users\Muhammad Salman\Documents\NUS\Courses\Orbital\OpenJio-workspace\React Project\frontend\public\background.jpg");
+    background-size: cover; /* This ensures the image covers the entire area */
+    background-repeat: no-repeat; /* This prevents the image from repeating */
+    background-position: center center; /* Centers the background image */
+    height: 100vh; /* Ensures the background covers the full height */
+    margin: 0;
+    padding: 0;
+  }
+  
