@@ -1,0 +1,6 @@
+ALTER TABLE user_profile
+RENAME COLUMN age TO birthdate;
+
+ALTER TABLE user_profile
+ALTER COLUMN birthdate SET DATA TYPE TIMESTAMP 
+USING ('1940-01-01'::date + birthdate * '1 day'::interval);
