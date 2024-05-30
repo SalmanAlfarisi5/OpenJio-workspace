@@ -1,7 +1,8 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate  } from 'react-router-dom';
 import './App.css';
 import Login from './components/Login';
+import Register from './components/Register'; // Import the Register component
 
 const Home = () => {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} /> {/* Add the register route */}
       </Routes>
     </Router>
   );
