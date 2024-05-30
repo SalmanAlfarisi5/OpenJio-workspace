@@ -10,6 +10,7 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Leaderboard from "./components/Leaderboard";
 import Activities from "./components/Activities";
+import LearnMore from "./components/LearnMore";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -30,7 +31,12 @@ const Home = () => {
         >
           Activities
         </button>
-        <button className="button button-link">Learn More</button>
+        <button
+          className="button button-link"
+          onClick={() => navigate("/LearnMore")}
+        >
+          Learn More
+        </button>
       </div>
       <div className="hero-content">
         <p className="hero-text">
@@ -57,6 +63,7 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/Activities" element={<Activities />} />
+        <Route path="/LearnMore" element={<LearnMore />} />
       </Routes>
     </Router>
   );

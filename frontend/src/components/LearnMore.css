@@ -1,0 +1,26 @@
+.LearnMore-container {
+    background-color: grey;
+}
+
+
+.founder-images {
+    display: flex;
+    justify-content: center;
+    /* Centers the images horizontally */
+    gap: 20px;
+    /* Adds space between the images */
+    flex-wrap: wrap;
+    /* Ensures the images wrap if they don't fit in one line */
+}
+
+.founder-image {
+    width: 30%;
+    /* Adjust the width as necessary to fit within the page */
+    height: auto;
+    /* Maintains the aspect ratio */
+    max-width: 200px;
+    /* Optional: Limits the maximum width of each image */
+    border-radius: 10px;
+    /* Optional: Adds rounded corners to the images */
+
+}

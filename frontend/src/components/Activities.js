@@ -20,7 +20,12 @@ const Activities = () => {
         >
           Activities
         </button>
-        <button className="button button-link">Learn More</button>
+        <button
+          className="button button-link"
+          onClick={() => navigate("/LearnMore")}
+        >
+          Learn More
+        </button>
       </div>
       <div className="blocks">
         <div className="activity-block">
