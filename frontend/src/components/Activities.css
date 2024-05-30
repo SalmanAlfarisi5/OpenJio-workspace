@@ -62,3 +62,15 @@
     margin-right: 30px;
     margin-top: 150px;
 }
+
+.activity-image {
+    width: 100%;
+    height: auto;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.activity-tittle {
+    font-size: 24px;
+    text-align: center;
+}
