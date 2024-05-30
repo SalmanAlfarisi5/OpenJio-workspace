@@ -25,7 +25,18 @@ const Activities = () => {
       <div className="blocks">
         <div className="activity-block">
           <img alt="soccer" className="activity-image" src="/soccer.jpg"></img>
-          <h2 className="activity-title">Soccer Match</h2>
+          <h2 className="activity-tittle">Soccer Match</h2>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
+            ultricies augue eu dolor facilisis, sit amet finibus est fermentum.
+            In hac habitasse platea dictumst. In cursus orci ac nunc tincidunt,
+            sit amet auctor velit mollis. Praesent pharetra sit amet nisi eget
+            aliquet. Nam vel lectus venenatis, aliquet lorem vitae, aliquam
+            quam.
+          </p>
+          <div class="button-container">
+            <button class="join-button">Join</button>
+          </div>
         </div>
         <div className="activity-block">
           <img
@@ -33,7 +44,18 @@ const Activities = () => {
             className="activity-image"
             src="/movies.jpg"
           ></img>
-          <h2 className="activity-title">Watching a Movie</h2>
+          <h2 className="activity-tittle">Watching a Movie</h2>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
+            ultricies augue eu dolor facilisis, sit amet finibus est fermentum.
+            In hac habitasse platea dictumst. In cursus orci ac nunc tincidunt,
+            sit amet auctor velit mollis. Praesent pharetra sit amet nisi eget
+            aliquet. Nam vel lectus venenatis, aliquet lorem vitae, aliquam
+            quam.
+          </p>
+          <div class="button-container">
+            <button class="join-button">Join</button>
+          </div>
         </div>
         <div className="activity-block">
           <img
@@ -41,7 +63,18 @@ const Activities = () => {
             className="activity-image"
             src="./house-party.jpg"
           ></img>
-          <h2 className="activity-title">House Party</h2>
+          <h2 className="activity-tittle">House Party</h2>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
+            ultricies augue eu dolor facilisis, sit amet finibus est fermentum.
+            In hac habitasse platea dictumst. In cursus orci ac nunc tincidunt,
+            sit amet auctor velit mollis. Praesent pharetra sit amet nisi eget
+            aliquet. Nam vel lectus venenatis, aliquet lorem vitae, aliquam
+            quam.
+          </p>
+          <div class="button-container">
+            <button class="join-button">Join</button>
+          </div>
         </div>
       </div>
     </div>
