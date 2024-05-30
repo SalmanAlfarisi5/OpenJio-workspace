@@ -11,6 +11,7 @@ import Register from "./components/Register";
 import Leaderboard from "./components/Leaderboard";
 import Activities from "./components/Activities";
 import LearnMore from "./components/LearnMore";
+import DetailedActivities from "./components/DetailedActivities";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -64,6 +65,7 @@ const App = () => {
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/Activities" element={<Activities />} />
         <Route path="/LearnMore" element={<LearnMore />} />
+        <Route path="/DetailedActivities" element={<DetailedActivities />} />
       </Routes>
     </Router>
   );
