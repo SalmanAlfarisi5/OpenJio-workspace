@@ -1,5 +1,5 @@
 .App {
-  background-image: url("C:\Users\Muhammad Salman\Documents\NUS\Courses\Orbital\OpenJio-workspace\frontend\public\background.jpg");
+  background-image: url("/public/background.jpg");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center;
