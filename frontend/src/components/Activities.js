@@ -64,7 +64,12 @@ const Activities = () => {
             quam.
           </p>
           <div class="button-container">
-            <button class="join-button">Join</button>
+            <button
+              class="join-button"
+              onClick={() => navigate("/DetailedActivities")}
+            >
+              Join
+            </button>
           </div>
         </div>
         <div className="activity-block">
@@ -83,7 +88,12 @@ const Activities = () => {
             quam.
           </p>
           <div class="button-container">
-            <button class="join-button">Join</button>
+            <button
+              class="join-button"
+              onClick={() => navigate("/DetailedActivities")}
+            >
+              Join
+            </button>
           </div>
         </div>
       </div>
