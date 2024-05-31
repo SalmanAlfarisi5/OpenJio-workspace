@@ -51,7 +51,10 @@ const DetailedActivities = () => {
             <h2>Host</h2>
             <div className="host-detailed">
               <img src="./salman.jpg" className="host-image" alt="salman"></img>
-              <p>Muhammad Salman Al Farisi</p>
+              <div>
+                <p>Muhammad Salman Al Farisi</p>
+                <button>Ask to Join</button>
+              </div>
             </div>
           </div>
         </div>

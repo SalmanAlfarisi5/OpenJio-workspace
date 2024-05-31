@@ -30,7 +30,7 @@ const LearnMore = () => {
         terms, you must not use the website.
       </p>
 
-      <h1>Founder</h1>
+      <h1>Users</h1>
       <div className="founder-images">
         <img alt="salman" className="founder-image" src="./salman.jpg"></img>
         <img alt="judha" className="founder-image" src="./judha.jpg"></img>

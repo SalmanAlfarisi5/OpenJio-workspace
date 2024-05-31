@@ -5,6 +5,7 @@ const Register = () => {
   return (
     <div className="register-container">
       <h2>Register</h2>
+
       <form>
         <div className="input-container">
           <label htmlFor="Fullname">Fullname</label>
