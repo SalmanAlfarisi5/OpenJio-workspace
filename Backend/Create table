@@ -19,3 +19,14 @@ CREATE TABLE user_profile(
 	social_media TEXT,
 	age INT
 );
+
+CREATE TABLE activity(
+	id SERIAL PRIMARY KEY,
+	act_name TEXT,
+	user_id_host INT,
+	FOREIGN KEY (user_id_host) REFERENCES user_login(id),
+	act_desc VARCHAR(255),
+	num_people INT,
+	act_status TEXT,
+	date_status timestamp
+);
