@@ -13,11 +13,12 @@
     position: relative;
 }
 
-.logo {
+.Profile {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 150px;
+    top: 10px;
+    left: 10px;
+    width: 100px;
+    height: 100px;
 }
 
 .top-button {

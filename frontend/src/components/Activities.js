@@ -6,7 +6,13 @@ const Activities = () => {
   const navigate = useNavigate();
   return (
     <div className="activities-container">
-      <img src="/logo.png" alt="Logo" className="logo" />
+      <img
+        src="/Avatar.png"
+        alt="Profile"
+        className="Profile"
+        onClick={() => navigate("/profile")}
+        style={{ cursor: "pointer" }}
+      />
       <div className="top-button">
         <button
           className="button button-link"

@@ -4,37 +4,39 @@ import "./Login.css";
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    username: '',
-    password: ''
+    username: "",
+    password: "",
   });
 
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value
+      [name]: value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8080/api/login', formData);
-      console.log('Login successful:', response.data);
-      setSuccess('Login successful!');
-      setError('');
-      // Optionally handle successful login (e.g., redirect to dashboard)
+      const response = await axios.post(
+        "http://localhost:8080/api/login",
+        formData
+      );
+      console.log("Login successful:", response.data);
+      setSuccess("Login successful!");
+      setError("");
     } catch (error) {
       if (error.response && error.response.data) {
         setError(error.response.data.error);
-        setSuccess('');
+        setSuccess("");
       } else {
-        console.error('Error logging in:', error);
-        setError('An unexpected error occurred.');
-        setSuccess('');
+        console.error("Error logging in:", error);
+        setError("An unexpected error occurred.");
+        setSuccess("");
       }
     }
   };
@@ -47,11 +49,25 @@ const Login = () => {
         {success && <div className="success-message">{success}</div>}
         <div>
           <label htmlFor="username">Username:</label>
-          <input type="text" id="username" name="username" value={formData.username} onChange={handleChange} required />
+          <input
+            type="text"
+            id="username"
+            name="username"
+            value={formData.username}
+            onChange={handleChange}
+            required
+          />
         </div>
         <div>
           <label htmlFor="password">Password:</label>
-          <input type="password" id="password" name="password" value={formData.password} onChange={handleChange} required />
+          <input
+            type="password"
+            id="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
         </div>
         <button type="submit">Login</button>
       </form>
