@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  useNavigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import "./App.css";
 import Login from "./components/Login";
 import Register from "./components/Register";
@@ -13,29 +8,28 @@ import Activities from "./components/Activities";
 import LearnMore from "./components/LearnMore";
 import DetailedActivities from "./components/DetailedActivities";
 import Profile from "./components/Profile";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const Home = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="App">
       <img src="/logo.png" alt="Logo" className="logo" />
       <div className="top-button">
         <button
           className="button button-link"
-          onClick={() => navigate("/leaderboard")}
+          onClick={() => window.location.href = "/leaderboard"}
         >
           Leaderboard
         </button>
         <button
           className="button button-link"
-          onClick={() => navigate("/Activities")}
+          onClick={() => window.location.href = "/activities"}
         >
           Activities
         </button>
         <button
           className="button button-link"
-          onClick={() => navigate("/LearnMore")}
+          onClick={() => window.location.href = "/learnmore"}
         >
           Learn More
         </button>
@@ -47,7 +41,7 @@ const Home = () => {
         </p>
         <button
           className="button get-started-button"
-          onClick={() => navigate("/login")} // Use navigate to go to the login page
+          onClick={() => window.location.href = "/login"}
         >
           Get Started
         </button>
@@ -64,10 +58,14 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
-        <Route path="/Activities" element={<Activities />} />
-        <Route path="/LearnMore" element={<LearnMore />} />
-        <Route path="/DetailedActivities" element={<DetailedActivities />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/activities" element={<Activities />} />
+        <Route path="/learnmore" element={<LearnMore />} />
+        <Route path="/detailedactivities" element={<DetailedActivities />} />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } />
       </Routes>
     </Router>
   );

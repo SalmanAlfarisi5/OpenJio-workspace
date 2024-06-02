@@ -1,16 +1,27 @@
+// src/components/Activities.js
 import React from "react";
 import "./Activities.css";
 import { useNavigate } from "react-router-dom";
 
 const Activities = () => {
   const navigate = useNavigate();
+
+  const handleProfileClick = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/profile");
+    } else {
+      navigate("/login");
+    }
+  };
+
   return (
     <div className="activities-container">
       <img
         src="/Avatar.png"
         alt="Profile"
         className="Profile"
-        onClick={() => navigate("/profile")}
+        onClick={handleProfileClick}
         style={{ cursor: "pointer" }}
       />
       <div className="top-button">
@@ -22,13 +33,13 @@ const Activities = () => {
         </button>
         <button
           className="button button-link"
-          onClick={() => navigate("/Activities")}
+          onClick={() => navigate("/activities")}
         >
           Activities
         </button>
         <button
           className="button button-link"
-          onClick={() => navigate("/LearnMore")}
+          onClick={() => navigate("/learnmore")}
         >
           Learn More
         </button>
@@ -36,7 +47,7 @@ const Activities = () => {
       <div className="blocks">
         <div className="activity-block">
           <img alt="soccer" className="activity-image" src="/soccer.jpg"></img>
-          <h2 className="activity-tittle">Soccer Match</h2>
+          <h2 className="activity-title">Soccer Match</h2>
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
             ultricies augue eu dolor facilisis, sit amet finibus est fermentum.
@@ -45,10 +56,10 @@ const Activities = () => {
             aliquet. Nam vel lectus venenatis, aliquet lorem vitae, aliquam
             quam.
           </p>
-          <div class="button-container">
+          <div className="button-container">
             <button
-              class="join-button"
-              onClick={() => navigate("/DetailedActivities")}
+              className="join-button"
+              onClick={() => navigate("/detailedactivities")}
             >
               Join
             </button>
@@ -60,7 +71,7 @@ const Activities = () => {
             className="activity-image"
             src="/movies.jpg"
           ></img>
-          <h2 className="activity-tittle">Watching a Movie</h2>
+          <h2 className="activity-title">Watching a Movie</h2>
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
             ultricies augue eu dolor facilisis, sit amet finibus est fermentum.
@@ -69,10 +80,10 @@ const Activities = () => {
             aliquet. Nam vel lectus venenatis, aliquet lorem vitae, aliquam
             quam.
           </p>
-          <div class="button-container">
+          <div className="button-container">
             <button
-              class="join-button"
-              onClick={() => navigate("/DetailedActivities")}
+              className="join-button"
+              onClick={() => navigate("/detailedactivities")}
             >
               Join
             </button>
@@ -84,7 +95,7 @@ const Activities = () => {
             className="activity-image"
             src="./house-party.jpg"
           ></img>
-          <h2 className="activity-tittle">House Party</h2>
+          <h2 className="activity-title">House Party</h2>
           <p>
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
             ultricies augue eu dolor facilisis, sit amet finibus est fermentum.
@@ -93,10 +104,10 @@ const Activities = () => {
             aliquet. Nam vel lectus venenatis, aliquet lorem vitae, aliquam
             quam.
           </p>
-          <div class="button-container">
+          <div className="button-container">
             <button
-              class="join-button"
-              onClick={() => navigate("/DetailedActivities")}
+              className="join-button"
+              onClick={() => navigate("/detailedactivities")}
             >
               Join
             </button>

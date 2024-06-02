@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "./Login.css";
 
 const Login = () => {
@@ -10,6 +11,7 @@ const Login = () => {
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,6 +31,8 @@ const Login = () => {
       console.log("Login successful:", response.data);
       setSuccess("Login successful!");
       setError("");
+      localStorage.setItem("token", response.data.token);
+      navigate("/activities");
     } catch (error) {
       if (error.response && error.response.data) {
         setError(error.response.data.error);

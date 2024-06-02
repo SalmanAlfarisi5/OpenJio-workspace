@@ -13,6 +13,23 @@ const PORT = 8080; // You can change this to any available port
 app.use(cors());
 app.use(bodyParser.json());
 
+const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+  
+    if (!token) {
+      return res.sendStatus(401); // No token provided
+    }
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) {
+          return res.sendStatus(403); // Invalid token
+        }
+        req.user = user;
+        next();
+      });
+    };
+
 // User registration endpoint
 app.post('/api/register', async (req, res) => {
     const { email, fullname, username, password } = req.body;
@@ -77,6 +94,49 @@ app.post('/api/login', async (req, res) => {
         res.status(500).send('Server error');
     }
 });
+
+// Get user profile endpoint
+app.get('/api/profile', authenticateToken, async (req, res) => {
+    try {
+      const userId = req.user.userId;
+  
+      const profileResult = await db.query('SELECT * FROM user_profile WHERE user_id = $1', [userId]);
+      const profile = profileResult.rows[0];
+  
+      const userResult = await db.query('SELECT * FROM user_login WHERE id = $1', [userId]);
+      const user = userResult.rows[0];
+  
+      res.json({
+        real_name: profile.real_name,
+        username: user.username,
+        social_media: profile.social_media,
+        dob: profile.dob,
+        description: profile.description
+      });
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      res.status(500).send('Server error');
+    }
+  });
+
+  // Update user profile endpoint
+  app.put('/api/profile', authenticateToken, async (req, res) => {
+    const { real_name, social_media, dob, description } = req.body;
+  
+    try {
+      const userId = req.user.userId;
+  
+      await db.query(
+        'UPDATE user_profile SET real_name = $1, social_media = $2, dob = $3, description = $4 WHERE user_id = $5',
+        [real_name, social_media, dob, description, userId]
+      );
+  
+      res.json({ message: 'Profile updated successfully' });
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      res.status(500).send('Server error');
+    }
+  });
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
