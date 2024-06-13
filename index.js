@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const db = require('./db'); 
+const path = require("path");
 const bcrypt = require('bcryptjs'); // Using bcryptjs
 const jwt = require('jsonwebtoken'); // For token-based authentication
 
@@ -12,6 +13,11 @@ const PORT = process.env.PORT || 8080;
 app.use(cors());
 app.use(bodyParser.json());
 
+//app.use(express.static(path.join(__dirname, "frontend/build")));
+
+if(process.env.NODE_ENV === "production"){
+    app.use(express.static(path.join(__dirname, "frontend/build"))); 
+}
 // Middleware for token authentication
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -130,6 +136,10 @@ app.put('/api/profile', authenticateToken, async (req, res) => {
         console.error('Error updating profile:', err);
         res.status(500).send('Server error');
     }
+});
+
+app.get("*", (req,res) =>{
+    res.sendFile(path.join(__dirname, "client/build/index.html"));
 });
 
 // Start the server
