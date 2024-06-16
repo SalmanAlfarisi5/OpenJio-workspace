@@ -27,21 +27,9 @@ const Activities = () => {
       <div className="top-button">
         <button
           className="button button-link"
-          onClick={() => navigate("/leaderboard")}
+          onClick={() => navigate("/CreateActivity")}
         >
-          Leaderboard
-        </button>
-        <button
-          className="button button-link"
-          onClick={() => navigate("/activities")}
-        >
-          Activities
-        </button>
-        <button
-          className="button button-link"
-          onClick={() => navigate("/learnmore")}
-        >
-          Learn More
+          Create an Activity
         </button>
       </div>
       <div className="blocks">

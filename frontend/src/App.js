@@ -8,6 +8,7 @@ import Activities from "./components/Activities";
 import LearnMore from "./components/LearnMore";
 import DetailedActivities from "./components/DetailedActivities";
 import Profile from "./components/Profile";
+import CreateActivity from "./components/CreateActivity";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const Home = () => {
@@ -17,19 +18,19 @@ const Home = () => {
       <div className="top-button">
         <button
           className="button button-link"
-          onClick={() => window.location.href = "/leaderboard"}
+          onClick={() => (window.location.href = "/leaderboard")}
         >
           Leaderboard
         </button>
         <button
           className="button button-link"
-          onClick={() => window.location.href = "/activities"}
+          onClick={() => (window.location.href = "/activities")}
         >
           Activities
         </button>
         <button
           className="button button-link"
-          onClick={() => window.location.href = "/learnmore"}
+          onClick={() => (window.location.href = "/learnmore")}
         >
           Learn More
         </button>
@@ -41,7 +42,7 @@ const Home = () => {
         </p>
         <button
           className="button get-started-button"
-          onClick={() => window.location.href = "/login"}
+          onClick={() => (window.location.href = "/login")}
         >
           Get Started
         </button>
@@ -61,11 +62,15 @@ const App = () => {
         <Route path="/activities" element={<Activities />} />
         <Route path="/learnmore" element={<LearnMore />} />
         <Route path="/detailedactivities" element={<DetailedActivities />} />
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        } />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/createactivity" element={<CreateActivity />} />
       </Routes>
     </Router>
   );
