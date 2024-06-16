@@ -6,7 +6,6 @@ import Register from "./components/Register";
 import Leaderboard from "./components/Leaderboard";
 import Activities from "./components/Activities";
 import LearnMore from "./components/LearnMore";
-import DetailedActivities from "./components/DetailedActivities";
 import Profile from "./components/Profile";
 import CreateActivity from "./components/CreateActivity";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -61,7 +60,6 @@ const App = () => {
         <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="/activities" element={<Activities />} />
         <Route path="/learnmore" element={<LearnMore />} />
-        <Route path="/detailedactivities" element={<DetailedActivities />} />
         <Route
           path="/profile"
           element={
