@@ -1,9 +1,8 @@
-/* src/Leaderboard.css */
-
 body,
 html {
     height: 100%;
     margin: 0;
+    overflow: hidden;
 }
 
 #root {
@@ -20,7 +19,6 @@ html {
     align-items: center;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
     overflow: hidden;
-
 }
 
 .leaderboard h1 {
@@ -36,6 +34,18 @@ html {
     max-width: 600px;
     overflow-y: auto;
     max-height: 70vh;
+}
+
+
+.leaderboard ul::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+
+.leaderboard ul {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 .leaderboard li {
