@@ -45,6 +45,8 @@
     padding: 10px 20px;
     font-size: 18px;
     transition: background-color 0.3s;
+    border: 2px solid #FFD700;
+    border-radius: 15px;
 }
 
 .button-link:hover {

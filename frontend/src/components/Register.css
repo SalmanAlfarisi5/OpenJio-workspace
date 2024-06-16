@@ -4,6 +4,9 @@ body {
     padding: 0;
     height: 100%;
     overflow: hidden;
+    background-color: #1f1f2e;
+    /* Set the background color to dark */
+    font-family: Arial, sans-serif;
 }
 
 .register-container {
@@ -14,34 +17,49 @@ body {
     height: 100vh;
     text-align: center;
     padding-top: 60px;
-
+    color: #fff;
+    /* Updated text color to white */
 }
 
 .register-container h2 {
     margin-bottom: 20px;
     font-size: 24px;
+    color: #ffc107;
+    /* Updated title color to yellow */
 }
 
 .input-container {
     margin-bottom: 20px;
     text-align: left;
     width: 100%;
+    max-width: 400px;
 }
 
 .input-container label {
     display: block;
     margin-bottom: 5px;
-    color: #333;
+    color: #ccc;
+    /* Updated label color to light gray */
 }
 
 .input-container input,
 .input-container select {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid #555;
+    /* Updated border color to dark gray */
     border-radius: 5px;
     box-sizing: border-box;
+    background-color: #2c2c3e;
+    /* Input background color to match card style */
+    color: #fff;
+    /* Input text color to white */
+}
 
+.input-container input::placeholder,
+.input-container select::placeholder {
+    color: #888;
+    /* Placeholder text color to gray */
 }
 
 .checkbox-container {
@@ -53,31 +71,40 @@ body {
     display: flex;
     align-items: center;
     margin-bottom: 5px;
+    color: #ccc;
+    /* Updated checkbox label color */
 }
 
 .register-button {
     width: 100%;
+    max-width: 400px;
     padding: 10px;
-    background: #333;
+    background: #ffc107;
+    /* Updated button background to yellow */
     border: none;
     border-radius: 5px;
-    color: white;
+    color: #1f1f2e;
+    /* Updated button text color to match the dark theme */
     font-size: 16px;
     cursor: pointer;
-    transition: background 0.3s;
+
 }
 
 .register-button:hover {
-    background: #555;
+    background: #e0a800;
+    /* Slightly darker yellow on hover */
 }
 
 .login-link {
     margin-top: 20px;
     font-size: 14px;
+    color: #ffc107;
+    /* Updated link color to yellow */
 }
 
 .login-link a {
-    color: #4a00e0;
+    color: #ffc107;
+    /* Updated link color */
     text-decoration: none;
 }
 
