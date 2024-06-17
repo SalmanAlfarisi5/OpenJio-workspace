@@ -1,13 +1,21 @@
 // backend/db.js
 const { Pool } = require('pg');
+require("dotenv").config();
 
-const pool = new Pool({
-    user: 'postgres',
-    host: 'localhost',
-    database: 'OpenJio Main',
-    password: '0penj10',
-    port: 5432,
-});
+const devConfig = {
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT,
+}
+
+const proConfig = {
+    connectionString: process.env.DATABASE_URL
+}
+const pool = new Pool(
+    process.env.NODE_ENV === "production" ? proConfig : devConfig
+);
 
 module.exports = {
     query: (text, params) => pool.query(text, params),

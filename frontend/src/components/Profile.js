@@ -22,7 +22,7 @@ const Profile = () => {
     } else {
       const fetchProfile = async () => {
         try {
-          const response = await axios.get('http://localhost:8080/api/profile', {
+          const response = await axios.get('/api/profile', {
             headers: { Authorization: `Bearer ${token}` }
           });
           setProfile(response.data);
@@ -46,7 +46,7 @@ const Profile = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put('http://localhost:8080/api/profile', profile, {
+      const response = await axios.put('/api/profile', profile, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMessage(response.data.message);
