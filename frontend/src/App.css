@@ -1,5 +1,6 @@
 .App {
-  background-image: url("/public/background.jpg");
+  background-color: #1f1f2e;
+  /* Updated dark background color */
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center center;
@@ -31,7 +32,8 @@
 .button {
   border: none;
   background: none;
-  color: white;
+  color: #fff;
+  /* Updated color to white */
   cursor: pointer;
   padding: 10px 20px;
   font-size: 18px;
@@ -45,7 +47,8 @@
 
 .hero-content {
   text-align: center;
-  color: white;
+  color: #fff;
+  /* Updated color to white */
   margin-bottom: 50px;
 }
 
@@ -58,8 +61,10 @@
 
 .get-started-button {
   background: transparent;
-  border: 2px solid white;
-  color: white;
+  border: 2px solid #ffc107;
+  /* Updated border to yellow */
+  color: #ffc107;
+  /* Updated text color to yellow */
   padding: 15px 30px;
   font-size: 18px;
   border-radius: 5px;
@@ -67,6 +72,54 @@
 }
 
 .get-started-button:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 193, 7, 0.2);
+  /* Updated hover color to a yellow tint */
+}
 
+.activity-card {
+  background-color: #2c2c3e;
+  /* Card background color */
+  border: none;
+  color: white;
+  padding: 20px;
+  margin: 10px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.activity-card:hover {
+  transform: scale(1.05);
+}
+
+.activity-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #ffc107;
+  /* Title color to yellow */
+}
+
+.activity-description {
+  margin: 10px 0;
+  font-size: 16px;
+  color: #ccc;
+  /* Description color to light gray */
+}
+
+.activity-button {
+  background-color: #ffc107;
+  /* Button background color to yellow */
+  color: #1f1f2e;
+  /* Button text color to match dark background */
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.activity-button:hover {
+  background-color: #e0a800;
+  /* Slightly darker yellow on hover */
 }

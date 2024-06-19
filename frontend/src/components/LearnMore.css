@@ -1,26 +1,84 @@
-.LearnMore-container {
-    background-color: grey;
+html,
+body {
+    height: 100%;
+    margin: 0;
+    overflow: auto;
 }
 
-
-.founder-images {
+.learn-more-container {
+    min-height: 100vh;
+    /* Set minimum height to 100% of viewport height */
     display: flex;
-    justify-content: center;
-    /* Centers the images horizontally */
-    gap: 20px;
-    /* Adds space between the images */
-    flex-wrap: wrap;
-    /* Ensures the images wrap if they don't fit in one line */
+    flex-direction: column;
+    /* Allow vertical stacking */
+    padding: 20px;
+    margin: 0 auto;
+    /* Center the container */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: #293857;
+
+
 }
 
-.founder-image {
-    width: 30%;
-    /* Adjust the width as necessary to fit within the page */
-    height: auto;
-    /* Maintains the aspect ratio */
-    max-width: 200px;
-    /* Optional: Limits the maximum width of each image */
-    border-radius: 10px;
-    /* Optional: Adds rounded corners to the images */
+/* Styling for sections */
+.learn-more-section {
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: #3a4a6b;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 
+/* Section headers */
+.learn-more-section h1,
+.learn-more-section h2 {
+    color: #f8b400;
+    margin-bottom: 10px;
+}
+
+.learn-more-section h3 {
+    color: #f8b400;
+    margin-bottom: 5px;
+}
+
+.learn-more-section p {
+    color: #c0c5cf;
+    line-height: 1.6;
+}
+
+/* Blockquotes for testimonials */
+blockquote {
+    font-style: italic;
+    color: #ddd;
+    border-left: 4px solid #f8b400;
+    padding-left: 15px;
+    margin-left: 0;
+}
+
+/* Ordered list in the How It Works section */
+.learn-more-section ol {
+    list-style: decimal inside;
+    margin: 10px 0;
+    padding-left: 0;
+}
+
+.learn-more-section ol li {
+    margin-bottom: 10px;
+    color: #c0c5cf;
+}
+
+/* Links */
+.learn-more-section a {
+    color: #f8b400;
+    text-decoration: none;
+}
+
+.learn-more-section a:hover {
+    text-decoration: underline;
+}
+
+/* Additional padding for legal links */
+.learn-more-section p a {
+    display: block;
+    margin-bottom: 5px;
 }

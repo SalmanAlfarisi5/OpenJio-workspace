@@ -1,7 +1,32 @@
-// src/components/Activities.js
 import React from "react";
 import "./Activities.css";
 import { useNavigate } from "react-router-dom";
+
+// Example activities data
+const activities = [
+  {
+    id: 1,
+    avatar: "/Avatar.png",
+    name: "Beach Volleyball",
+    description:
+      "Join us for a fun game of beach volleyball. All skill levels are welcome!",
+  },
+  {
+    id: 2,
+    avatar: "/Avatar.png",
+    name: "Sandcastle Building",
+    description:
+      "Compete to build the best sandcastle. Bring your creativity and tools!",
+  },
+  {
+    id: 3,
+    avatar: "/Avatar.png",
+    name: "Treasure Hunt",
+    description:
+      "Participate in a thrilling treasure hunt along the beach. Find the clues and win the prize!",
+  },
+  // Add more activities as needed
+];
 
 const Activities = () => {
   const navigate = useNavigate();
@@ -13,6 +38,11 @@ const Activities = () => {
     } else {
       navigate("/login");
     }
+  };
+
+  const handleJoinClick = (activityId) => {
+    // Logic for joining an activity
+    alert(`Sending request with ID: ${activityId}`);
   };
 
   return (
@@ -27,92 +57,31 @@ const Activities = () => {
       <div className="top-button">
         <button
           className="button button-link"
-          onClick={() => navigate("/leaderboard")}
+          onClick={() => navigate("/CreateActivity")}
         >
-          Leaderboard
-        </button>
-        <button
-          className="button button-link"
-          onClick={() => navigate("/activities")}
-        >
-          Activities
-        </button>
-        <button
-          className="button button-link"
-          onClick={() => navigate("/learnmore")}
-        >
-          Learn More
+          Create an Activity
         </button>
       </div>
-      <div className="blocks">
-        <div className="activity-block">
-          <img alt="soccer" className="activity-image" src="/soccer.jpg"></img>
-          <h2 className="activity-title">Soccer Match</h2>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
-            ultricies augue eu dolor facilisis, sit amet finibus est fermentum.
-            In hac habitasse platea dictumst. In cursus orci ac nunc tincidunt,
-            sit amet auctor velit mollis. Praesent pharetra sit amet nisi eget
-            aliquet. Nam vel lectus venenatis, aliquet lorem vitae, aliquam
-            quam.
-          </p>
-          <div className="button-container">
-            <button
-              className="join-button"
-              onClick={() => navigate("/detailedactivities")}
-            >
-              Join
-            </button>
+      <div className="activities-list">
+        {activities.map((activity) => (
+          <div key={activity.id} className="activity-block">
+            <img
+              src={activity.avatar}
+              alt={activity.name}
+              className="activity-image"
+            />
+            <h3 className="activity-title">{activity.name}</h3>
+            <p className="activity-description">{activity.description}</p>
+            <div className="button-container">
+              <button
+                className="join-button"
+                onClick={() => handleJoinClick(activity.id)}
+              >
+                Join
+              </button>
+            </div>
           </div>
-        </div>
-        <div className="activity-block">
-          <img
-            alt="watching a movie"
-            className="activity-image"
-            src="/movies.jpg"
-          ></img>
-          <h2 className="activity-title">Watching a Movie</h2>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
-            ultricies augue eu dolor facilisis, sit amet finibus est fermentum.
-            In hac habitasse platea dictumst. In cursus orci ac nunc tincidunt,
-            sit amet auctor velit mollis. Praesent pharetra sit amet nisi eget
-            aliquet. Nam vel lectus venenatis, aliquet lorem vitae, aliquam
-            quam.
-          </p>
-          <div className="button-container">
-            <button
-              className="join-button"
-              onClick={() => navigate("/detailedactivities")}
-            >
-              Join
-            </button>
-          </div>
-        </div>
-        <div className="activity-block">
-          <img
-            alt="House Party"
-            className="activity-image"
-            src="./house-party.jpg"
-          ></img>
-          <h2 className="activity-title">House Party</h2>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus
-            ultricies augue eu dolor facilisis, sit amet finibus est fermentum.
-            In hac habitasse platea dictumst. In cursus orci ac nunc tincidunt,
-            sit amet auctor velit mollis. Praesent pharetra sit amet nisi eget
-            aliquet. Nam vel lectus venenatis, aliquet lorem vitae, aliquam
-            quam.
-          </p>
-          <div className="button-container">
-            <button
-              className="join-button"
-              onClick={() => navigate("/detailedactivities")}
-            >
-              Join
-            </button>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
