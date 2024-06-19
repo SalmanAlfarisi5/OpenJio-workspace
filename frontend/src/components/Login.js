@@ -25,7 +25,7 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/login",
+        "/api/login",
         formData
       );
       console.log("Login successful:", response.data);

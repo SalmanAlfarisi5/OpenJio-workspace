@@ -23,7 +23,7 @@ const Register = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/register",
+        "/api/register",
         formData
       );
       console.log("Registration successful:", response.data);
