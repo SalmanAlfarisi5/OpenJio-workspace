@@ -42,7 +42,7 @@ const Activities = () => {
 
   const handleJoinClick = (activityId) => {
     // Logic for joining an activity
-    alert(`Joined activity with ID: ${activityId}`);
+    alert(`Sending request with ID: ${activityId}`);
   };
 
   return (
