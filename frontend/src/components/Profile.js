@@ -1,33 +1,36 @@
-// src/components/Profile.js
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import "./Profile.css"; // Import the CSS file
 
 const Profile = () => {
   const [profile, setProfile] = useState({
-    real_name: '',
-    username: '',
-    social_media: '',
-    dob: '',
-    description: ''
+    real_name: "",
+    username: "",
+    social_media: "",
+    dob: "",
+    description: "",
+    profile_photo: "", // New field for profile photo
   });
 
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
+  const [imagePreview, setImagePreview] = useState(null); // To show a preview of the uploaded photo
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      navigate('/login');
+      navigate("/login");
     } else {
       const fetchProfile = async () => {
         try {
-          const response = await axios.get('/api/profile', {
-            headers: { Authorization: `Bearer ${token}` }
+          const response = await axios.get("/api/profile", {
+            headers: { Authorization: `Bearer ${token}` },
           });
           setProfile(response.data);
+          setImagePreview(response.data.profile_photo); // Set initial photo preview
         } catch (error) {
-          console.error('Error fetching profile:', error);
+          console.error("Error fetching profile:", error);
         }
       };
       fetchProfile();
@@ -38,31 +41,58 @@ const Profile = () => {
     const { name, value } = e.target;
     setProfile({
       ...profile,
-      [name]: value
+      [name]: value,
     });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+        setProfile({
+          ...profile,
+          profile_photo: reader.result,
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put('/api/profile', profile, {
-        headers: { Authorization: `Bearer ${token}` }
+      const token = localStorage.getItem("token");
+      const response = await axios.put("/api/profile", profile, {
+        headers: { Authorization: `Bearer ${token}` },
       });
       setMessage(response.data.message);
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error("Error updating profile:", error);
     }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
   return (
-    <div>
+    <div className="container">
       <h1>Profile Page</h1>
+      <div className="profile-photo-container">
+        {imagePreview ? (
+          <img
+            src={imagePreview}
+            alt="Profile Preview"
+            className="profile-photo"
+          />
+        ) : (
+          <div className="profile-photo-placeholder">No Image</div>
+        )}
+        <input type="file" accept="image/*" onChange={handleFileChange} />
+      </div>
       <h3>Name: {profile.real_name}</h3>
       <h3>Username: {profile.username}</h3>
       <h3>Social Media:</h3>
@@ -88,9 +118,13 @@ const Profile = () => {
         cols="50"
         placeholder="Enter your description here..."
       />
+      <h3>Activities joined:</h3>
+      <h3>Activities created:</h3>
       <button onClick={handleSubmit}>Update Profile</button>
       {message && <p>{message}</p>}
-      <button onClick={handleLogout}>Logout</button>
+      <button className="logout-button" onClick={handleLogout}>
+        Logout
+      </button>
     </div>
   );
 };

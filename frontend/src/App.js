@@ -1,5 +1,10 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
 import "./App.css";
 import Login from "./components/Login";
 import Register from "./components/Register";
@@ -9,28 +14,21 @@ import LearnMore from "./components/LearnMore";
 import Profile from "./components/Profile";
 import CreateActivity from "./components/CreateActivity";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MyActivity from "./components/MyActivity";
 
 const Home = () => {
+  const navigate = useNavigate();
   return (
     <div className="App">
       <img src="/logo.png" alt="Logo" className="logo" />
       <div className="top-button">
-        <button
-          className="button button-link"
-          onClick={() => (window.location.href = "/leaderboard")}
-        >
+        <button className="button" onClick={() => navigate("/leaderboard")}>
           Leaderboard
         </button>
-        <button
-          className="button button-link"
-          onClick={() => (window.location.href = "/activities")}
-        >
+        <button className="button" onClick={() => navigate("/activities")}>
           Activities
         </button>
-        <button
-          className="button button-link"
-          onClick={() => (window.location.href = "/learnmore")}
-        >
+        <button className="button" onClick={() => navigate("/learnmore")}>
           Learn More
         </button>
       </div>
@@ -39,10 +37,7 @@ const Home = () => {
           Connecting Communities One Activity at a Time - Create, Join, and
           Enjoy.
         </p>
-        <button
-          className="button get-started-button"
-          onClick={() => (window.location.href = "/login")}
-        >
+        <button className="button" onClick={() => navigate("/login")}>
           Get Started
         </button>
       </div>
@@ -69,6 +64,7 @@ const App = () => {
           }
         />
         <Route path="/createactivity" element={<CreateActivity />} />
+        <Route path="myactivity" element={<MyActivity />} />
       </Routes>
     </Router>
   );

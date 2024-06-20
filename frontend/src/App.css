@@ -1,24 +1,18 @@
 .App {
+  background-image: url('../public/background.jpg');
   background-color: #1f1f2e;
-  /* Updated dark background color */
   background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center center;
   height: 100vh;
-  margin: 0;
-  padding: 0;
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-  position: relative;
 }
 
 .logo {
   position: absolute;
   top: 20px;
   left: 20px;
-  width: 150px;
+  width: 200px;
 }
 
 .top-button {
@@ -30,96 +24,29 @@
 }
 
 .button {
-  border: none;
   background: none;
-  color: #fff;
-  /* Updated color to white */
+  color: white;
   cursor: pointer;
   padding: 10px 20px;
-  font-size: 18px;
+  font-size: 21px;
   transition: background-color 0.3s;
+  border: 2px solid #FFD700;
+  border-radius: 15px;
 }
 
-.button-link:hover {
+.button:hover {
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 5px;
 }
 
 .hero-content {
   text-align: center;
-  color: #fff;
-  /* Updated color to white */
   margin-bottom: 50px;
 }
 
 .hero-text {
-  font-size: 36px;
+  font-size: 48px;
   font-weight: bold;
   margin-bottom: 20px;
   max-width: 800px;
-}
-
-.get-started-button {
-  background: transparent;
-  border: 2px solid #ffc107;
-  /* Updated border to yellow */
-  color: #ffc107;
-  /* Updated text color to yellow */
-  padding: 15px 30px;
-  font-size: 18px;
-  border-radius: 5px;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-.get-started-button:hover {
-  background-color: rgba(255, 193, 7, 0.2);
-  /* Updated hover color to a yellow tint */
-}
-
-.activity-card {
-  background-color: #2c2c3e;
-  /* Card background color */
-  border: none;
-  color: white;
-  padding: 20px;
-  margin: 10px;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  transition: transform 0.2s;
-}
-
-.activity-card:hover {
-  transform: scale(1.05);
-}
-
-.activity-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #ffc107;
-  /* Title color to yellow */
-}
-
-.activity-description {
-  margin: 10px 0;
-  font-size: 16px;
-  color: #ccc;
-  /* Description color to light gray */
-}
-
-.activity-button {
-  background-color: #ffc107;
-  /* Button background color to yellow */
-  color: #1f1f2e;
-  /* Button text color to match dark background */
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
-}
-
-.activity-button:hover {
-  background-color: #e0a800;
-  /* Slightly darker yellow on hover */
 }

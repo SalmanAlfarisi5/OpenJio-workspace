@@ -4,7 +4,6 @@ import "./LearnMore.css";
 const LearnMore = () => {
   return (
     <div className="learn-more-container">
-      {/* Introduction Section */}
       <section className="learn-more-section">
         <h1>OpenJio Description</h1>
         <p>
@@ -19,8 +18,6 @@ const LearnMore = () => {
           their activity moments on their profiles for others to view.
         </p>
       </section>
-
-      {/* Detailed Features Section */}
       <section className="learn-more-section">
         <h2>Detailed Features</h2>
         <h3>Activity Posting</h3>
@@ -40,8 +37,6 @@ const LearnMore = () => {
           Receive notifications when someone requests to join your activity.
         </p>
       </section>
-
-      {/* User Testimonials Section */}
       <section className="learn-more-section">
         <h2>User Testimonials</h2>
         <blockquote>
@@ -57,8 +52,6 @@ const LearnMore = () => {
           </p>
         </blockquote>
       </section>
-
-      {/* Technical Information Section */}
       <section className="learn-more-section">
         <h2>Technical Information</h2>
         <p>
@@ -67,8 +60,6 @@ const LearnMore = () => {
           database to store user data.
         </p>
       </section>
-
-      {/* How It Works Section */}
       <section className="learn-more-section">
         <h2>How It Works</h2>
         <ol>
@@ -86,8 +77,6 @@ const LearnMore = () => {
           </li>
         </ol>
       </section>
-
-      {/* Developer Information Section */}
       <section className="learn-more-section">
         <h2>About the Developers</h2>
         <p>
@@ -96,8 +85,6 @@ const LearnMore = () => {
           contact@openjio.com or follow us on social media for updates.
         </p>
       </section>
-
-      {/* Updates and Roadmap Section */}
       <section className="learn-more-section">
         <h2>Updates and Roadmap</h2>
         <p>
@@ -105,8 +92,6 @@ const LearnMore = () => {
           enhanced profile customization and event analytics coming soon!
         </p>
       </section>
-
-      {/* Resources Section */}
       <section className="learn-more-section">
         <h2>Resources</h2>
         <ul>
@@ -121,8 +106,6 @@ const LearnMore = () => {
           </li>
         </ul>
       </section>
-
-      {/* Call to Action Section */}
       <section className="learn-more-section">
         <h2>Get Started</h2>
         <p>
@@ -133,8 +116,6 @@ const LearnMore = () => {
           Have feedback? <a href="/feedback">Let us know</a>.
         </p>
       </section>
-
-      {/* Legal Information Section */}
       <section className="learn-more-section">
         <h2>Legal Information</h2>
         <p>

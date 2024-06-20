@@ -1,57 +1,32 @@
-body,
-html {
+#root {
     height: 100%;
-    margin: 0;
-    overflow: hidden;
+    overflow: auto;
 }
 
-#root {
+body,
+html {
     height: 100%;
 }
 
 .leaderboard {
     background: linear-gradient(45deg, #2a3d66, #1a2a3d);
     padding: 30px;
-    color: #fff;
     height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-    overflow: hidden;
-}
-
-.leaderboard h1 {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 32px;
 }
 
 .leaderboard ul {
-    list-style: none;
-    padding: 0;
     width: 100%;
     max-width: 600px;
-    overflow-y: auto;
+    overflow: auto;
     max-height: 70vh;
-}
-
-
-.leaderboard ul::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-}
-
-
-.leaderboard ul {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
 }
 
 .leaderboard li {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
     background: rgba(255, 255, 255, 0.1);
     margin-bottom: 15px;
     padding: 15px 30px;

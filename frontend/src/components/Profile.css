@@ -1,0 +1,123 @@
+body {
+    background-color: #131A2A;
+    font-family: Arial, sans-serif;
+    color: #FFFFFF;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #1E2738;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #F5A623;
+    margin-bottom: 20px;
+}
+
+h3 {
+    color: #F5A623;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="date"],
+textarea {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #2A3A4E;
+    border-radius: 4px;
+    background-color: #1E2738;
+    color: #FFFFFF;
+}
+
+input[type="text"]::placeholder,
+textarea::placeholder {
+    color: #7A8B9E;
+}
+
+input[type="file"] {
+    display: none;
+    /* Hide default file input */
+}
+
+input[type="file"]+label {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #F5A623;
+    color: #1E2738;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    margin: 10px 0;
+}
+
+input[type="file"]+label:hover {
+    background-color: #FFD54F;
+    color: #131A2A;
+}
+
+button {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 10px 0;
+    color: #F5A623;
+    background-color: #1E2738;
+    border: 1px solid #F5A623;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+button:hover {
+    background-color: #F5A623;
+    color: #1E2738;
+}
+
+p {
+    color: #F5A623;
+}
+
+.logout-button {
+    display: block;
+    margin: 20px auto;
+    background-color: #F53D23;
+    border-color: #F53D23;
+}
+
+.logout-button:hover {
+    background-color: #F75D45;
+}
+
+.profile-photo-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.profile-photo {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #F5A623;
+    margin-bottom: 10px;
+}
+
+.profile-photo-placeholder {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: #2A3A4E;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7A8B9E;
+    margin-bottom: 10px;
+}
