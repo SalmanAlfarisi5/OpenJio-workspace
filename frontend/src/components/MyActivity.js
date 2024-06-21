@@ -35,7 +35,7 @@ const activities = [
   },
 ];
 
-const Activities = () => {
+const MyActivity = () => {
   const navigate = useNavigate();
 
   const handleProfileClick = () => {
@@ -43,7 +43,7 @@ const Activities = () => {
     if (token) {
       navigate("/profile");
     } else {
-      navigate("/login");
+      navigate("/profile");
     }
   };
 
@@ -63,12 +63,6 @@ const Activities = () => {
       <div className="top-button">
         <button
           className="button button-link"
-          onClick={() => navigate("/MyActivity")}
-        >
-          My Activities
-        </button>
-        <button
-          className="button button-link"
           onClick={() => navigate("/CreateActivity")}
         >
           Create an Activity
@@ -78,7 +72,6 @@ const Activities = () => {
         {activities.map((activity) => (
           <div key={activity.id} className="activity-block">
             <img
-              onClick={() => navigate("/host")}
               src={activity.avatar}
               alt={activity.name}
               className="activity-image"
@@ -97,7 +90,7 @@ const Activities = () => {
                 className="join-button"
                 onClick={() => handleJoinClick(activity.id)}
               >
-                Join
+                Delete
               </button>
             </div>
           </div>
@@ -107,4 +100,4 @@ const Activities = () => {
   );
 };
 
-export default Activities;
+export default MyActivity;

@@ -1,7 +1,6 @@
-// frontend/src/components/Register.js
 import React, { useState } from "react";
 import axios from "axios";
-import "./Register.css";
+import "./RegisterLogin.css";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -22,10 +21,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "/api/register",
-        formData
-      );
+      const response = await axios.post("/api/register", formData);
       console.log("Registration successful:", response.data);
     } catch (error) {
       console.error("Error registering user:", error);
@@ -33,9 +29,8 @@ const Register = () => {
   };
 
   return (
-    <div className="register-container">
+    <div className="form-container">
       <h2>Register</h2>
-
       <form onSubmit={handleSubmit}>
         <div className="input-container">
           <label htmlFor="email">Email</label>
@@ -81,12 +76,11 @@ const Register = () => {
             required
           />
         </div>
-
-        <button type="submit" className="register-button">
+        <button type="submit" className="submit-button">
           Register
         </button>
       </form>
-      <div className="login-link">
+      <div className="link-container">
         <span>Already have an account?</span> <a href="/login">Login</a>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./Login.css";
+import "./RegisterLogin.css";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -24,10 +24,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "/api/login",
-        formData
-      );
+      const response = await axios.post("/api/login", formData);
       console.log("Login successful:", response.data);
       setSuccess("Login successful!");
       setError("");
@@ -46,13 +43,13 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <h2>Login Page</h2>
+    <div className="form-container">
+      <h2>Login</h2>
       <form onSubmit={handleSubmit}>
-        {error && <div className="error-message">{error}</div>}
-        {success && <div className="success-message">{success}</div>}
-        <div>
-          <label htmlFor="username">Username:</label>
+        {error && <div className="message error-message">{error}</div>}
+        {success && <div className="message success-message">{success}</div>}
+        <div className="input-container">
+          <label htmlFor="username">Username</label>
           <input
             type="text"
             id="username"
@@ -62,8 +59,8 @@ const Login = () => {
             required
           />
         </div>
-        <div>
-          <label htmlFor="password">Password:</label>
+        <div className="input-container">
+          <label htmlFor="password">Password</label>
           <input
             type="password"
             id="password"
@@ -73,13 +70,12 @@ const Login = () => {
             required
           />
         </div>
-        <button type="submit">Login</button>
+        <button type="submit" className="submit-button">
+          Login
+        </button>
       </form>
-      <br />
-      <div>
-        <p>
-          Don't have an account? <a href="/register">Register</a>
-        </p>
+      <div className="link-container">
+        <span>Don't have an account?</span> <a href="/register">Register</a>
       </div>
     </div>
   );
