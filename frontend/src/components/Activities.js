@@ -78,6 +78,7 @@ const Activities = () => {
         {activities.map((activity) => (
           <div key={activity.id} className="activity-block">
             <img
+              onClick={() => navigate("/host")}
               src={activity.avatar}
               alt={activity.name}
               className="activity-image"

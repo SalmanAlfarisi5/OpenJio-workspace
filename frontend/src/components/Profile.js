@@ -7,14 +7,15 @@ const Profile = () => {
   const [profile, setProfile] = useState({
     real_name: "",
     username: "",
+    email: "",
     social_media: "",
     dob: "",
     description: "",
-    profile_photo: "", // New field for profile photo
+    profile_photo: "",
   });
 
   const [message, setMessage] = useState("");
-  const [imagePreview, setImagePreview] = useState(null); // To show a preview of the uploaded photo
+  const [imagePreview, setImagePreview] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,7 +29,7 @@ const Profile = () => {
             headers: { Authorization: `Bearer ${token}` },
           });
           setProfile(response.data);
-          setImagePreview(response.data.profile_photo); // Set initial photo preview
+          setImagePreview(response.data.profile_photo);
         } catch (error) {
           console.error("Error fetching profile:", error);
         }
@@ -75,52 +76,53 @@ const Profile = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    navigate("/login");
+    navigate("/");
   };
 
   return (
     <div className="container">
       <h1>Profile Page</h1>
-      <div className="profile-photo-container">
-        {imagePreview ? (
-          <img
-            src={imagePreview}
-            alt="Profile Preview"
-            className="profile-photo"
-          />
-        ) : (
-          <div className="profile-photo-placeholder">No Image</div>
-        )}
-        <input type="file" accept="image/*" onChange={handleFileChange} />
-      </div>
-      <h3>Name: {profile.real_name}</h3>
-      <h3>Username: {profile.username}</h3>
-      <h3>Social Media:</h3>
-      <input
-        type="text"
-        name="social_media"
-        value={profile.social_media}
-        onChange={handleChange}
-      />
-      <h3>Date of Birth:</h3>
-      <input
-        type="date"
-        name="dob"
-        value={profile.dob}
-        onChange={handleChange}
-      />
-      <h3>Description:</h3>
-      <textarea
-        name="description"
-        value={profile.description}
-        onChange={handleChange}
-        rows="4"
-        cols="50"
-        placeholder="Enter your description here..."
-      />
-      <h3>Activities joined:</h3>
-      <h3>Activities created:</h3>
-      <button onClick={handleSubmit}>Update Profile</button>
+      <form onSubmit={handleSubmit}>
+        <div className="profile-photo-container">
+          {imagePreview ? (
+            <img
+              src={imagePreview}
+              alt="Profile Preview"
+              className="profile-photo"
+            />
+          ) : (
+            <div className="profile-photo-placeholder">No Image</div>
+          )}
+          <input type="file" accept="image/*" onChange={handleFileChange} />
+        </div>
+        <h3>Name: {profile.real_name}</h3>
+        <h3>Username: {profile.username}</h3>
+        <h3>Email: {profile.email}</h3>
+        <h3>Social Media:</h3>
+        <input
+          type="text"
+          name="social_media"
+          value={profile.social_media}
+          onChange={handleChange}
+        />
+        <h3>Date of Birth:</h3>
+        <input
+          type="date"
+          name="dob"
+          value={profile.dob}
+          onChange={handleChange}
+        />
+        <h3>Description:</h3>
+        <textarea
+          name="description"
+          value={profile.description}
+          onChange={handleChange}
+          rows="4"
+          cols="50"
+          placeholder="Enter your description here..."
+        />
+        <button type="submit">Update Profile</button>
+      </form>
       {message && <p>{message}</p>}
       <button className="logout-button" onClick={handleLogout}>
         Logout

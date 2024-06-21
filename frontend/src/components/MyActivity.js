@@ -63,12 +63,6 @@ const MyActivity = () => {
       <div className="top-button">
         <button
           className="button button-link"
-          onClick={() => navigate("/MyActivity")}
-        >
-          My Activities
-        </button>
-        <button
-          className="button button-link"
           onClick={() => navigate("/CreateActivity")}
         >
           Create an Activity
@@ -92,12 +86,6 @@ const MyActivity = () => {
               <span>Location: {activity.location}</span>
             </p>
             <div className="button-container">
-              <button
-                className="join-button"
-                onClick={() => handleJoinClick(activity.id)}
-              >
-                Edit
-              </button>
               <button
                 className="join-button"
                 onClick={() => handleJoinClick(activity.id)}

@@ -43,11 +43,6 @@ textarea::placeholder {
     color: #7A8B9E;
 }
 
-input[type="file"] {
-    display: none;
-    /* Hide default file input */
-}
-
 input[type="file"]+label {
     display: inline-block;
     padding: 10px 20px;
