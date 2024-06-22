@@ -10,9 +10,7 @@ const Activities = () => {
   useEffect(() => {
     const fetchActivities = async () => {
       try {
-        const response = await fetch(
-          "https://your-heroku-app.herokuapp.com/api/activities"
-        );
+        const response = await fetch("/api/activities");
         if (response.ok) {
           const data = await response.json();
           setActivities(data);
@@ -37,7 +35,7 @@ const Activities = () => {
   };
 
   const handleJoinClick = (activityId) => {
-    alert(`Sending request with ID: ${activityId}`);
+    alert(`Sending request to join activity with ID: ${activityId}`);
     // Implement the join functionality here, e.g., send a request to the backend
   };
 
@@ -68,17 +66,17 @@ const Activities = () => {
         {activities.map((activity) => (
           <div key={activity.id} className="activity-block">
             <img
-              onClick={() => navigate("/host")}
+              onClick={() => navigate("/host/${activity.user_id_host}")}
               src={activity.avatar || "/Avatar.png"} // Default avatar if not provided
               alt={activity.name}
               className="activity-image"
             />
             <h3 className="activity-title">{activity.title}</h3>
-            <p className="activity-description">{activity.description}</p>
+            <p className="activity-description">{activity.act_des}</p>
             <p className="activity-date-time">
-              <span>Date: {activity.date}</span>
+              <span>Date: {activity.act_date}</span>
               <br />
-              <span>Time: {activity.time}</span>
+              <span>Time: {activity.act_time}</span>
               <br />
               <span>Location: {activity.location}</span>
             </p>

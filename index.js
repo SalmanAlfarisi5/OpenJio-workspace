@@ -17,6 +17,7 @@ if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "frontend/build")));
 }
 
+// Middleware to authenticate JWT tokens
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
@@ -34,24 +35,27 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Endpoint to create a new activity
 app.post("/api/activities", authenticateToken, async (req, res) => {
-  const { title, description, date, time, location } = req.body;
+  const { title, act_desc, location, act_date, act_time } = req.body; // Ensure field names match frontend and database
 
   try {
     const result = await db.query(
-      "INSERT INTO activities (title, description, date, time, location, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [title, description, date, time, location, req.user.userId]
+      "INSERT INTO activity (title, act_desc, act_date, act_time, location, user_id_host) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+      [title, act_desc, act_date, act_time, location, req.user.userId] // Ensure correct parameter order
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error("Error creating activity:", err);
+    console.error("Error creating activity:", err); // Log the error
+    console.error("Request Body:", req.body); // Log request body for debugging
     res.status(500).send("Server error");
   }
 });
 
+// Endpoint to fetch all activities
 app.get("/api/activities", async (req, res) => {
   try {
-    const result = await db.query("SELECT * FROM activities");
+    const result = await db.query("SELECT * FROM activity");
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Error fetching activities:", err);
@@ -59,6 +63,7 @@ app.get("/api/activities", async (req, res) => {
   }
 });
 
+// Endpoint to register a new user
 app.post("/api/register", async (req, res) => {
   const { email, fullname, username, password } = req.body;
 
@@ -88,6 +93,7 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
+// Endpoint to log in a user
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -118,6 +124,7 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+// Endpoint to get the user's profile
 app.get("/api/profile", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
@@ -147,6 +154,7 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
   }
 });
 
+// Endpoint to update the user's profile
 app.put("/api/profile", authenticateToken, async (req, res) => {
   const { real_name, social_media, dob, description } = req.body;
 
@@ -165,10 +173,12 @@ app.put("/api/profile", authenticateToken, async (req, res) => {
   }
 });
 
+// Serve the React app for all other routes
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/build", "index.html"));
 });
 
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

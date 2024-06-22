@@ -22,11 +22,12 @@ CREATE TABLE user_profile(
 
 CREATE TABLE activity(
 	id SERIAL PRIMARY KEY,
-	act_name TEXT,
+	title TEXT,
 	user_id_host INT,
 	FOREIGN KEY (user_id_host) REFERENCES user_login(id),
 	act_desc VARCHAR(255),
 	num_people INT,
-	act_status TEXT,
-	date_status timestamp
+	act_date DATE,
+	location TEXT,
+	act_time TIME WITHOUT TIME ZONE
 );

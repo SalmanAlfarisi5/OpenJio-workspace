@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import "./CreateActivity.css";
+import { useNavigate } from "react-router-dom";
 
 const CreateActivity = () => {
   const [formData, setFormData] = useState({
     title: "",
-    description: "",
-    date: "",
-    time: "",
+    act_desc: "", // Update to match backend field
     location: "",
+    act_date: "", // Ensure naming consistency
+    act_time: "" // Ensure naming consistency
   });
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -17,22 +19,28 @@ const CreateActivity = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem("token"); 
+    if (!token) {
+      console.error("No token found, please login first");
+      navigate("/login");
+      return;
+    }
     try {
-      const response = await fetch(
-        "https://your-heroku-app.herokuapp.com/activities",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      const response = await fetch("/api/activities", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
       if (response.ok) {
         const activity = await response.json();
         console.log("Activity Created", activity);
+        navigate("/activities");
       } else {
-        console.error("Error creating activity");
+        const errorText = await response.text();
+        console.error("Error creating activity:", errorText); // Log detailed error
       }
     } catch (error) {
       console.error("Error:", error);
@@ -52,23 +60,23 @@ const CreateActivity = () => {
           required
         />
         <textarea
-          name="description"
+          name="act_desc" // Update to match backend field
           placeholder="Description"
-          value={formData.description}
+          value={formData.act_desc}
           onChange={handleChange}
           required
         />
         <input
           type="date"
-          name="date"
-          value={formData.date}
+          name="act_date" // Ensure naming consistency
+          value={formData.act_date}
           onChange={handleChange}
           required
         />
         <input
           type="time"
-          name="time"
-          value={formData.time}
+          name="act_time" // Ensure naming consistency
+          value={formData.act_time}
           onChange={handleChange}
           required
         />
