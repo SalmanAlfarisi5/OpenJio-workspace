@@ -93,6 +93,47 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
+// Endpoint to fetch activities by the logged-in user
+app.get("/api/my-activities", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const result = await db.query(
+      "SELECT * FROM activity WHERE user_id_host = $1",
+      [userId]
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching user's activities:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Endpoint to delete an activity
+app.delete("/api/activities/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.userId;
+
+  try {
+    // Check if the activity belongs to the logged-in user
+    const activityResult = await db.query(
+      "SELECT * FROM activity WHERE id = $1 AND user_id_host = $2",
+      [id, userId]
+    );
+
+    if (activityResult.rows.length === 0) {
+      return res.status(404).json({ error: "Activity not found or not authorized" });
+    }
+
+    // Delete the activity
+    await db.query("DELETE FROM activity WHERE id = $1", [id]);
+    res.status(200).json({ message: "Activity deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting activity:", err);
+    res.status(500).send("Server error");
+  }
+});
+
 // Endpoint to log in a user
 app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;

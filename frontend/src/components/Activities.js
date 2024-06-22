@@ -4,18 +4,24 @@ import { useNavigate } from "react-router-dom";
 
 const Activities = () => {
   const [activities, setActivities] = useState([]);
+  const [showMyActivities, setShowMyActivities] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch activities from the backend
   useEffect(() => {
     const fetchActivities = async () => {
+      const url = showMyActivities ? "/api/my-activities" : "/api/activities";
       try {
-        const response = await fetch("/api/activities");
+        const response = await fetch(url, {
+          headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         if (response.ok) {
           const data = await response.json();
           setActivities(data);
         } else {
-          console.error("Error fetching activities");
+          const errorText = await response.text();
+          console.error("Error fetching activities:", errorText);
         }
       } catch (error) {
         console.error("Error:", error);
@@ -23,7 +29,7 @@ const Activities = () => {
     };
 
     fetchActivities();
-  }, []);
+  }, [showMyActivities]);
 
   const handleProfileClick = () => {
     const token = localStorage.getItem("token");
@@ -34,9 +40,53 @@ const Activities = () => {
     }
   };
 
+  const handleCreateActivityClick = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/CreateActivity");
+    } else {
+      console.error("No token found, please login first");
+      navigate("/login");
+    }
+  };
+
+  const handleMyActivitiesClick = () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setShowMyActivities((prev) => !prev);
+    } else {
+      console.error("No token found, please login first");
+      navigate("/login");
+    }
+  };
+
+  const handleDeleteClick = async (activityId) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`/api/activities/${activityId}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        setActivities((prevActivities) =>
+          prevActivities.filter((activity) => activity.id !== activityId)
+        );
+        console.log("Activity deleted successfully");
+      } else {
+        const errorText = await response.text();
+        console.error("Error deleting activity:", errorText);
+      }
+    } catch (error) {
+      console.error("Error deleting activity:", error);
+    }
+  };
+
   const handleJoinClick = (activityId) => {
-    alert(`Sending request to join activity with ID: ${activityId}`);
-    // Implement the join functionality here, e.g., send a request to the backend
+    alert(`Sending request to join activity ID: ${activityId}`);
+    // Implement the join functionality here
   };
 
   return (
@@ -46,18 +96,17 @@ const Activities = () => {
         alt="Profile"
         className="Profile"
         onClick={handleProfileClick}
-        style={{ cursor: "pointer" }}
       />
       <div className="top-button">
         <button
           className="button button-link"
-          onClick={() => navigate("/MyActivity")}
+          onClick={handleMyActivitiesClick}
         >
-          My Activities
+          {showMyActivities ? "All Activities" : "My Activities"}
         </button>
         <button
           className="button button-link"
-          onClick={() => navigate("/CreateActivity")}
+          onClick={handleCreateActivityClick}
         >
           Create an Activity
         </button>
@@ -66,13 +115,13 @@ const Activities = () => {
         {activities.map((activity) => (
           <div key={activity.id} className="activity-block">
             <img
-              onClick={() => navigate("/host/${activity.user_id_host}")}
-              src={activity.avatar || "/Avatar.png"} // Default avatar if not provided
-              alt={activity.name}
+              onClick={() => navigate(`/host/${activity.user_id_host}`)}
+              src={activity.avatar || "/Avatar.png"}
+              alt={activity.title}
               className="activity-image"
             />
             <h3 className="activity-title">{activity.title}</h3>
-            <p className="activity-description">{activity.act_des}</p>
+            <p className="activity-description">{activity.act_desc}</p>
             <p className="activity-date-time">
               <span>Date: {activity.act_date}</span>
               <br />
@@ -81,12 +130,21 @@ const Activities = () => {
               <span>Location: {activity.location}</span>
             </p>
             <div className="button-container">
-              <button
-                className="join-button"
-                onClick={() => handleJoinClick(activity.id)}
-              >
-                Join
-              </button>
+              {showMyActivities ? (
+                <button
+                  className="delete-button"
+                  onClick={() => handleDeleteClick(activity.id)}
+                >
+                  Delete
+                </button>
+              ) : (
+                <button
+                  className="join-button"
+                  onClick={() => handleJoinClick(activity.id)}
+                >
+                  Join
+                </button>
+              )}
             </div>
           </div>
         ))}
