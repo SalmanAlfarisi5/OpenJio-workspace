@@ -15,10 +15,28 @@ const CreateActivity = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Implement your submit logic here
-    console.log("Activity Created", formData);
+    try {
+      const response = await fetch(
+        "https://your-heroku-app.herokuapp.com/activities",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+      if (response.ok) {
+        const activity = await response.json();
+        console.log("Activity Created", activity);
+      } else {
+        console.error("Error creating activity");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
   };
 
   return (

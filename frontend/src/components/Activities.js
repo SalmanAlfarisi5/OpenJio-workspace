@@ -1,42 +1,31 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./Activities.css";
 import { useNavigate } from "react-router-dom";
 
-const activities = [
-  {
-    id: 1,
-    avatar: "/Avatar.png",
-    name: "Beach Volleyball",
-    description:
-      "Join us for a fun game of beach volleyball. All skill levels are welcome!",
-    date: "21/06/2024",
-    time: "14:00",
-    location: "marina bay",
-  },
-  {
-    id: 2,
-    avatar: "/Avatar.png",
-    name: "Sandcastle Building",
-    description:
-      "Compete to build the best sandcastle. Bring your creativity and tools!",
-    date: "22/06/2024",
-    time: "10:00",
-    location: "pgpr",
-  },
-  {
-    id: 3,
-    avatar: "/Avatar.png",
-    name: "Treasure Hunt",
-    description:
-      "Participate in a thrilling treasure hunt along the beach. Find the clues and win the prize!",
-    date: "23/06/2024",
-    time: "12:00",
-    location: "my house",
-  },
-];
-
 const Activities = () => {
+  const [activities, setActivities] = useState([]);
   const navigate = useNavigate();
+
+  // Fetch activities from the backend
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const response = await fetch(
+          "https://your-heroku-app.herokuapp.com/api/activities"
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setActivities(data);
+        } else {
+          console.error("Error fetching activities");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+
+    fetchActivities();
+  }, []);
 
   const handleProfileClick = () => {
     const token = localStorage.getItem("token");
@@ -49,6 +38,7 @@ const Activities = () => {
 
   const handleJoinClick = (activityId) => {
     alert(`Sending request with ID: ${activityId}`);
+    // Implement the join functionality here, e.g., send a request to the backend
   };
 
   return (
@@ -79,17 +69,17 @@ const Activities = () => {
           <div key={activity.id} className="activity-block">
             <img
               onClick={() => navigate("/host")}
-              src={activity.avatar}
+              src={activity.avatar || "/Avatar.png"} // Default avatar if not provided
               alt={activity.name}
               className="activity-image"
             />
-            <h3 className="activity-title">{activity.name}</h3>
+            <h3 className="activity-title">{activity.title}</h3>
             <p className="activity-description">{activity.description}</p>
             <p className="activity-date-time">
               <span>Date: {activity.date}</span>
-              <br></br>
+              <br />
               <span>Time: {activity.time}</span>
-              <br></br>
+              <br />
               <span>Location: {activity.location}</span>
             </p>
             <div className="button-container">
