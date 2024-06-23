@@ -8,7 +8,7 @@ const CreateActivity = () => {
     act_desc: "", // Update to match backend field
     location: "",
     act_date: "", // Ensure naming consistency
-    act_time: "" // Ensure naming consistency
+    act_time: "", // Ensure naming consistency
   });
   const navigate = useNavigate();
 
@@ -19,7 +19,7 @@ const CreateActivity = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token"); 
+    const token = localStorage.getItem("token");
     if (!token) {
       console.error("No token found, please login first");
       navigate("/login");
@@ -30,7 +30,7 @@ const CreateActivity = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });

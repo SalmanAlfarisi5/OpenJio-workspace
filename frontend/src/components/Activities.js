@@ -13,12 +13,19 @@ const Activities = () => {
       try {
         const response = await fetch(url, {
           headers: {
-            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
         if (response.ok) {
           const data = await response.json();
-          setActivities(data);
+          // Create a Google Maps URL for each activity
+          const activitiesWithMapUrls = data.map((activity) => ({
+            ...activity,
+            mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              activity.location
+            )}`,
+          }));
+          setActivities(activitiesWithMapUrls);
         } else {
           const errorText = await response.text();
           console.error("Error fetching activities:", errorText);
@@ -66,7 +73,7 @@ const Activities = () => {
       const response = await fetch(`/api/activities/${activityId}`, {
         method: "DELETE",
         headers: {
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -127,7 +134,16 @@ const Activities = () => {
               <br />
               <span>Time: {activity.act_time}</span>
               <br />
-              <span>Location: {activity.location}</span>
+              <span>
+                Location:{" "}
+                <a
+                  href={activity.mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {activity.location}
+                </a>
+              </span>
             </p>
             <div className="button-container">
               {showMyActivities ? (

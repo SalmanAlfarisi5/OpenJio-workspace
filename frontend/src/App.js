@@ -14,7 +14,7 @@ import LearnMore from "./components/LearnMore";
 import Profile from "./components/Profile";
 import CreateActivity from "./components/CreateActivity";
 import ProtectedRoute from "./components/ProtectedRoute";
-import MyActivity from "./components/MyActivity";
+
 import Host from "./components/Host";
 
 const Home = () => {
@@ -65,7 +65,7 @@ const App = () => {
           }
         />
         <Route path="/createactivity" element={<CreateActivity />} />
-        <Route path="/myactivity" element={<MyActivity />} />
+
         <Route path="/host" element={<Host />} />
       </Routes>
     </Router>
