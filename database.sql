@@ -18,6 +18,7 @@ CREATE TABLE user_profile(
 	user_review_avrg INT,
 	social_media TEXT,
 	age INT
+	profile_photo TEXT
 );
 
 CREATE TABLE activity(

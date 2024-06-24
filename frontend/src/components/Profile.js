@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./Profile.css"; // Import the CSS file
+import "./Profile.css";
 
 const Profile = () => {
   const [profile, setProfile] = useState({
     real_name: "",
     username: "",
-    email: "",
+    email: "", // Add email here
     social_media: "",
     dob: "",
     description: "",
-    profile_photo: "",
+    profile_photo: "", // Assuming you have profile photo field
   });
 
   const [message, setMessage] = useState("");
@@ -97,7 +97,7 @@ const Profile = () => {
         </div>
         <h3>Name: {profile.real_name}</h3>
         <h3>Username: {profile.username}</h3>
-        <h3>Email: {profile.email}</h3>
+        <h3>Email: {profile.email}</h3> {/* Display email here */}
         <h3>Social Media:</h3>
         <input
           type="text"

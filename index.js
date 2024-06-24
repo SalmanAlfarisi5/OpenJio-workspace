@@ -122,7 +122,9 @@ app.delete("/api/activities/:id", authenticateToken, async (req, res) => {
     );
 
     if (activityResult.rows.length === 0) {
-      return res.status(404).json({ error: "Activity not found or not authorized" });
+      return res
+        .status(404)
+        .json({ error: "Activity not found or not authorized" });
     }
 
     // Delete the activity
@@ -185,9 +187,11 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
     res.json({
       real_name: profile.real_name,
       username: user.username,
+      email: user.email,
       social_media: profile.social_media,
       dob: profile.dob,
       description: profile.description,
+      profile_photo: profile.profile_photo, // To be implemented later where user can upload their photo also
     });
   } catch (err) {
     console.error("Error fetching profile:", err);
