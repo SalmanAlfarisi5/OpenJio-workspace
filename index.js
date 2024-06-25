@@ -218,28 +218,6 @@ app.put("/api/profile", authenticateToken, async (req, res) => {
   }
 });
 
-// Endpoint to get the logged-in user's information
-app.get("/api/user-info", authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.userId;
-
-    const profileResult = await db.query(
-      "SELECT up.real_name, ul.email FROM user_profile up JOIN user_login ul ON up.user_id = ul.id WHERE up.user_id = $1",
-      [userId]
-    );
-
-    if (profileResult.rows.length === 0) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const user = profileResult.rows[0];
-    res.json(user);
-  } catch (err) {
-    console.error("Error fetching user information:", err);
-    res.status(500).send("Server error");
-  }
-});
-
 // Serve the React app for all other routes
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/build", "index.html"));
