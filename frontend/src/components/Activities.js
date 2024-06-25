@@ -114,10 +114,10 @@ const Activities = () => {
 
   const handleJoinClick = async (activity) => {
     const templateParams = {
-      to_name: "salman",
+      to_name: activity.host_username,
       from_name: "OpenJio Support",
-      message: ` is interested in joining the activity: ${activity.title}`,
-      user_email: "salman26080@gmail.com",
+      message: ` Someone is interested in joining the activity: ${activity.title}`,
+      user_email: activity.host_email,
     };
 
     try {

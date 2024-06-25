@@ -37,17 +37,41 @@ const authenticateToken = (req, res, next) => {
 
 // Endpoint to create a new activity
 app.post("/api/activities", authenticateToken, async (req, res) => {
-  const { title, act_desc, location, act_date, act_time } = req.body; // Ensure field names match frontend and database
+  const { title, act_desc, location, act_date, act_time } = req.body;
 
   try {
-    const result = await db.query(
-      "INSERT INTO activity (title, act_desc, act_date, act_time, location, user_id_host) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [title, act_desc, act_date, act_time, location, req.user.userId] // Ensure correct parameter order
+    const userId = req.user.userId;
+
+    // Fetch the user's information
+    const userResult = await db.query(
+      "SELECT ul.email, ul.username, up.real_name FROM user_login ul JOIN user_profile up ON ul.id = up.user_id WHERE ul.id = $1",
+      [userId]
     );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const user = userResult.rows[0];
+
+    const result = await db.query(
+      "INSERT INTO activity (title, act_desc, act_date, act_time, location, user_id_host, host_username, host_fullname, host_email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+      [
+        title,
+        act_desc,
+        act_date,
+        act_time,
+        location,
+        userId,
+        user.username,
+        user.real_name,
+        user.email,
+      ]
+    );
+
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error("Error creating activity:", err); // Log the error
-    console.error("Request Body:", req.body); // Log request body for debugging
+    console.error("Error creating activity:", err);
     res.status(500).send("Server error");
   }
 });

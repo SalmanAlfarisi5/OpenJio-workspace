@@ -30,5 +30,8 @@ CREATE TABLE activity(
 	num_people INT,
 	act_date DATE,
 	location TEXT,
-	act_time TIME WITHOUT TIME ZONE
+	act_time TIME WITHOUT TIME ZONE,
+	host_username VARCHAR(255),
+	host_fullname VARCHAR(255),
+	host_email VARCHAR(255)
 );
