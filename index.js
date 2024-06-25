@@ -269,6 +269,17 @@ app.get("/api/user-details", authenticateToken, async (req, res) => {
   }
 });
 
+// Endpoint to fetch all users (usernames only)
+app.get("/api/users", async (req, res) => {
+  try {
+    const result = await db.query("SELECT username FROM user_login");
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).send("Server error");
+  }
+});
+
 // Serve the React app for all other routes
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/build", "index.html"));
