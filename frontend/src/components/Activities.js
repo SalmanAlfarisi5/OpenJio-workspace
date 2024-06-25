@@ -1,13 +1,34 @@
 import React, { useEffect, useState } from "react";
 import "./Activities.css";
 import { useNavigate } from "react-router-dom";
+import emailjs from "emailjs-com";
 
 const Activities = () => {
   const [activities, setActivities] = useState([]);
   const [showMyActivities, setShowMyActivities] = useState(false);
+  const [userInfo, setUserInfo] = useState({ real_name: "", email: "" });
   const navigate = useNavigate();
 
   useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch("/api/user-info", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setUserInfo(data);
+        } else {
+          console.error("Failed to fetch user info");
+        }
+      } catch (err) {
+        console.error("Error fetching user info:", err);
+      }
+    };
+
     const fetchActivities = async () => {
       const url = showMyActivities ? "/api/my-activities" : "/api/activities";
       try {
@@ -18,7 +39,6 @@ const Activities = () => {
         });
         if (response.ok) {
           const data = await response.json();
-          // Create a Google Maps URL for each activity
           const activitiesWithMapUrls = data.map((activity) => ({
             ...activity,
             mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
@@ -35,6 +55,7 @@ const Activities = () => {
       }
     };
 
+    fetchUserInfo();
     fetchActivities();
   }, [showMyActivities]);
 
@@ -91,9 +112,26 @@ const Activities = () => {
     }
   };
 
-  const handleJoinClick = (activityId) => {
-    alert(`Sending request to join activity ID: ${activityId}`);
-    // Implement the join functionality here
+  const handleJoinClick = async (activity) => {
+    const templateParams = {
+      to_name: "salman",
+      from_name: "OpenJio Support",
+      message: ` is interested in joining the activity: ${activity.title}`,
+      user_email: "salman26080@gmail.com",
+    };
+
+    try {
+      await emailjs.send(
+        "service_jfmlggb",
+        "template_fx34iqr",
+        templateParams,
+        "h1VRX5prAELaGTTuh"
+      );
+      alert("Request to join activity sent successfully!");
+    } catch (error) {
+      console.error("Error sending email:", error);
+      alert("Failed to send the request. Please try again.");
+    }
   };
 
   return (
@@ -156,7 +194,7 @@ const Activities = () => {
               ) : (
                 <button
                   className="join-button"
-                  onClick={() => handleJoinClick(activity.id)}
+                  onClick={() => handleJoinClick(activity)}
                 >
                   Join
                 </button>
