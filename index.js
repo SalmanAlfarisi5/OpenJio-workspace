@@ -184,7 +184,12 @@ app.post("/api/login", async (req, res) => {
       expiresIn: "1h",
     });
 
-    res.json({ message: "Login successful", token });
+    res.json({
+      message: "Login successful",
+      token,
+      username: user.username,
+      email: user.email,
+    });
   } catch (err) {
     console.error("Error during login:", err);
     res.status(500).send("Server error");
@@ -238,6 +243,28 @@ app.put("/api/profile", authenticateToken, async (req, res) => {
     res.json({ message: "Profile updated successfully" });
   } catch (err) {
     console.error("Error updating profile:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Endpoint to get the current user's details
+app.get("/api/user-details", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    const userResult = await db.query(
+      "SELECT username, email FROM user_login WHERE id = $1",
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const user = userResult.rows[0];
+    res.json({ username: user.username, email: user.email });
+  } catch (err) {
+    console.error("Error fetching user details:", err);
     res.status(500).send("Server error");
   }
 });

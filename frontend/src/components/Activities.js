@@ -6,29 +6,9 @@ import emailjs from "emailjs-com";
 const Activities = () => {
   const [activities, setActivities] = useState([]);
   const [showMyActivities, setShowMyActivities] = useState(false);
-  const [userInfo, setUserInfo] = useState({ real_name: "", email: "" });
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const response = await fetch("/api/user-info", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setUserInfo(data);
-        } else {
-          console.error("Failed to fetch user info");
-        }
-      } catch (err) {
-        console.error("Error fetching user info:", err);
-      }
-    };
-
     const fetchActivities = async () => {
       const url = showMyActivities ? "/api/my-activities" : "/api/activities";
       try {
@@ -55,7 +35,6 @@ const Activities = () => {
       }
     };
 
-    fetchUserInfo();
     fetchActivities();
   }, [showMyActivities]);
 
@@ -113,10 +92,13 @@ const Activities = () => {
   };
 
   const handleJoinClick = async (activity) => {
+    const username = localStorage.getItem("username");
+    const email = localStorage.getItem("email");
+
     const templateParams = {
       to_name: activity.host_username,
       from_name: "OpenJio Support",
-      message: ` Someone is interested in joining the activity: ${activity.title}`,
+      message: `${username} (${email}) is interested in joining the activity: ${activity.title}`,
       user_email: activity.host_email,
     };
 

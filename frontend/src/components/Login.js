@@ -29,6 +29,8 @@ const Login = () => {
       setSuccess("Login successful!");
       setError("");
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("username", response.data.username);
+      localStorage.setItem("email", response.data.email);
       navigate("/activities");
     } catch (error) {
       if (error.response && error.response.data) {
