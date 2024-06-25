@@ -5,10 +5,9 @@ import { useNavigate } from "react-router-dom";
 const CreateActivity = () => {
   const [formData, setFormData] = useState({
     title: "",
-    act_desc: "", // Update to match backend field
-    location: "",
-    act_date: "", // Ensure naming consistency
-    act_time: "", // Ensure naming consistency
+    act_desc: "",
+    act_date: "",
+    act_time: "",
   });
   const navigate = useNavigate();
 
