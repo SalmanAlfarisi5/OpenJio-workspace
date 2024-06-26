@@ -6,6 +6,7 @@ import emailjs from "emailjs-com";
 const Activities = () => {
   const [activities, setActivities] = useState([]);
   const [showMyActivities, setShowMyActivities] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -122,6 +123,14 @@ const Activities = () => {
     }
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const filteredActivities = activities.filter((activity) =>
+    activity.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="activities-container">
       <img
@@ -144,8 +153,16 @@ const Activities = () => {
           Create an Activity
         </button>
       </div>
+      <div className="search-bar">
+        <input
+          type="text"
+          placeholder="Search by title..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
+      </div>
       <div className="activities-list">
-        {activities.map((activity) => (
+        {filteredActivities.map((activity) => (
           <div key={activity.id} className="activity-block">
             <img
               onClick={() => navigate(`/host/${activity.user_id_host}`)}
