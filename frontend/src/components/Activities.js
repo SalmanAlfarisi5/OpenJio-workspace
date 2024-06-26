@@ -38,6 +38,12 @@ const Activities = () => {
     fetchActivities();
   }, [showMyActivities]);
 
+  const formatDate = (dateString) => {
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, options);
+  };
+
   const handleProfileClick = () => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -150,7 +156,7 @@ const Activities = () => {
             <h3 className="activity-title">{activity.title}</h3>
             <p className="activity-description">{activity.act_desc}</p>
             <p className="activity-date-time">
-              <span>Date: {activity.act_date}</span>
+              <span>Date: {formatDate(activity.act_date)}</span>
               <br />
               <span>Time: {activity.act_time}</span>
               <br />
