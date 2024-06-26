@@ -6,6 +6,8 @@ import emailjs from "emailjs-com";
 const Activities = () => {
   const [activities, setActivities] = useState([]);
   const [showMyActivities, setShowMyActivities] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc"); // 'asc' for ascending, 'desc' for descending
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,6 +39,12 @@ const Activities = () => {
 
     fetchActivities();
   }, [showMyActivities]);
+
+  const formatDate = (dateString) => {
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, options);
+  };
 
   const handleProfileClick = () => {
     const token = localStorage.getItem("token");
@@ -116,6 +124,24 @@ const Activities = () => {
     }
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSortOrderChange = (e) => {
+    setSortOrder(e.target.value);
+  };
+
+  const filteredActivities = activities.filter((activity) =>
+    activity.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const sortedActivities = [...filteredActivities].sort((a, b) => {
+    const dateA = new Date(a.act_date);
+    const dateB = new Date(b.act_date);
+    return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+  });
+
   return (
     <div className="activities-container">
       <img
@@ -138,8 +164,29 @@ const Activities = () => {
           Create an Activity
         </button>
       </div>
+      <div className="search-sort-container">
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="Search by title..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+        </div>
+        <div className="sort-order">
+          <label htmlFor="sortOrder">Sort by date: </label>
+          <select
+            id="sortOrder"
+            value={sortOrder}
+            onChange={handleSortOrderChange}
+          >
+            <option value="asc">Earliest to Latest</option>
+            <option value="desc">Latest to Earliest</option>
+          </select>
+        </div>
+      </div>
       <div className="activities-list">
-        {activities.map((activity) => (
+        {sortedActivities.map((activity) => (
           <div key={activity.id} className="activity-block">
             <img
               onClick={() => navigate(`/host/${activity.user_id_host}`)}
@@ -150,7 +197,7 @@ const Activities = () => {
             <h3 className="activity-title">{activity.title}</h3>
             <p className="activity-description">{activity.act_desc}</p>
             <p className="activity-date-time">
-              <span>Date: {activity.act_date}</span>
+              <span>Date: {formatDate(activity.act_date)}</span>
               <br />
               <span>Time: {activity.act_time}</span>
               <br />
