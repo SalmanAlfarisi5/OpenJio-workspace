@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./CreateActivity.css";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const CreateActivity = () => {
+  const location = useLocation();
+  const activityToEdit = location.state?.activity || null;
   const [formData, setFormData] = useState({
     title: "",
     act_desc: "",
@@ -10,6 +12,19 @@ const CreateActivity = () => {
     act_time: "",
     location: "",
   });
+
+  useEffect(() => {
+    if (activityToEdit) {
+      setFormData({
+        title: activityToEdit.title,
+        act_desc: activityToEdit.act_desc,
+        act_date: activityToEdit.act_date,
+        act_time: activityToEdit.act_time,
+        location: activityToEdit.location,
+      });
+    }
+  }, [activityToEdit]);
+
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -26,21 +41,27 @@ const CreateActivity = () => {
       return;
     }
     try {
-      const response = await fetch("/api/activities", {
-        method: "POST",
+      const method = activityToEdit ? "PUT" : "POST";
+      const url = activityToEdit
+        ? `/api/activities/${activityToEdit.id}`
+        : "/api/activities";
+
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(formData),
       });
+
       if (response.ok) {
         const activity = await response.json();
-        console.log("Activity Created", activity);
+        console.log("Activity saved", activity);
         navigate("/activities");
       } else {
         const errorText = await response.text();
-        console.error("Error creating activity:", errorText);
+        console.error("Error saving activity:", errorText);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -57,7 +78,7 @@ const CreateActivity = () => {
 
   return (
     <div className="create-activity">
-      <h1>Create Activity</h1>
+      <h1>{activityToEdit ? "Edit Activity" : "Create Activity"}</h1>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -97,7 +118,9 @@ const CreateActivity = () => {
           onChange={handleChange}
           required
         />
-        <button type="submit">Create Activity</button>
+        <button type="submit">
+          {activityToEdit ? "Update Activity" : "Create Activity"}
+        </button>
       </form>
     </div>
   );

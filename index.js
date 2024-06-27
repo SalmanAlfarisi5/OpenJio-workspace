@@ -280,6 +280,38 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
+// Endpoint to update an activity
+app.put("/api/activities/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { title, act_desc, location, act_date, act_time } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    // Check if the activity belongs to the logged-in user
+    const activityResult = await db.query(
+      "SELECT * FROM activity WHERE id = $1 AND user_id_host = $2",
+      [id, userId]
+    );
+
+    if (activityResult.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "Activity not found or not authorized" });
+    }
+
+    // Update the activity
+    await db.query(
+      "UPDATE activity SET title = $1, act_desc = $2, location = $3, act_date = $4, act_time = $5 WHERE id = $6",
+      [title, act_desc, location, act_date, act_time, id]
+    );
+
+    res.status(200).json({ message: "Activity updated successfully" });
+  } catch (err) {
+    console.error("Error updating activity:", err);
+    res.status(500).send("Server error");
+  }
+});
+
 // Serve the React app for all other routes
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/build", "index.html"));

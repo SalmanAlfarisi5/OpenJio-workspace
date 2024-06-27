@@ -132,6 +132,10 @@ const Activities = () => {
     setSortOrder(e.target.value);
   };
 
+  const handleEditClick = (activity) => {
+    navigate("/CreateActivity", { state: { activity } });
+  };
+
   const filteredActivities = activities.filter((activity) =>
     activity.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -214,12 +218,20 @@ const Activities = () => {
             </p>
             <div className="button-container">
               {showMyActivities ? (
-                <button
-                  className="delete-button"
-                  onClick={() => handleDeleteClick(activity.id)}
-                >
-                  Delete
-                </button>
+                <>
+                  <button
+                    className="edit-button"
+                    onClick={() => handleEditClick(activity)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="delete-button"
+                    onClick={() => handleDeleteClick(activity.id)}
+                  >
+                    Delete
+                  </button>
+                </>
               ) : (
                 <button
                   className="join-button"
