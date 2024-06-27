@@ -8,6 +8,7 @@ const CreateActivity = () => {
     act_desc: "",
     act_date: "",
     act_time: "",
+    location: "",
   });
   const navigate = useNavigate();
 
@@ -39,11 +40,19 @@ const CreateActivity = () => {
         navigate("/activities");
       } else {
         const errorText = await response.text();
-        console.error("Error creating activity:", errorText); // Log detailed error
+        console.error("Error creating activity:", errorText);
       }
     } catch (error) {
       console.error("Error:", error);
     }
+  };
+
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   return (
@@ -59,7 +68,7 @@ const CreateActivity = () => {
           required
         />
         <textarea
-          name="act_desc" // Update to match backend field
+          name="act_desc"
           placeholder="Description"
           value={formData.act_desc}
           onChange={handleChange}
@@ -67,14 +76,15 @@ const CreateActivity = () => {
         />
         <input
           type="date"
-          name="act_date" // Ensure naming consistency
+          name="act_date"
           value={formData.act_date}
+          min={getCurrentDate()}
           onChange={handleChange}
           required
         />
         <input
           type="time"
-          name="act_time" // Ensure naming consistency
+          name="act_time"
           value={formData.act_time}
           onChange={handleChange}
           required

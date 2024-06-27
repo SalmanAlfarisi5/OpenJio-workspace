@@ -38,7 +38,17 @@ const Home = () => {
           Connecting Communities One Activity at a Time - Create, Join, and
           Enjoy.
         </p>
-        <button className="button" onClick={() => navigate("/login")}>
+        <button
+          className="button"
+          onClick={() => {
+            const token = localStorage.getItem("token");
+            if (token) {
+              navigate("/activities");
+            } else {
+              navigate("/login");
+            }
+          }}
+        >
           Get Started
         </button>
       </div>
