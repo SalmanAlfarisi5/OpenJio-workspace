@@ -38,24 +38,11 @@ const authenticateToken = (req, res, next) => {
 // Endpoint to create a new activity
 app.post("/api/activities", authenticateToken, async (req, res) => {
   const { title, act_desc, location, act_date, act_time } = req.body;
+  const userId = req.user.userId;
 
   try {
-    const userId = req.user.userId;
-
-    // Fetch the user's information
-    const userResult = await db.query(
-      "SELECT ul.email, ul.username, up.real_name FROM user_login ul JOIN user_profile up ON ul.id = up.user_id WHERE ul.id = $1",
-      [userId]
-    );
-
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const user = userResult.rows[0];
-
     const result = await db.query(
-      "INSERT INTO activity (title, act_desc, act_date, act_time, location, user_id_host, host_username, host_fullname, host_email) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+      "INSERT INTO activity (title, act_desc, act_date, act_time, location, user_id_host) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
       [
         title,
         act_desc,
@@ -63,9 +50,6 @@ app.post("/api/activities", authenticateToken, async (req, res) => {
         act_time,
         location,
         userId,
-        user.username,
-        user.real_name,
-        user.email,
       ]
     );
 
@@ -218,8 +202,8 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
       username: user.username,
       email: user.email,
       social_media: profile.social_media,
-      dob: profile.dob,
-      description: profile.description,
+      dob: profile.birthdate,
+      description: profile.user_desc,
       profile_photo: profile.profile_photo, // To be implemented later where user can upload their photo also
     });
   } catch (err) {
@@ -228,17 +212,26 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
   }
 });
 
-// Endpoint to update the user's profile
+// Endpoint for updating user profile
 app.put("/api/profile", authenticateToken, async (req, res) => {
-  const { real_name, social_media, dob, description } = req.body;
+  const { real_name, social_media, dob, description, profile_photo } = req.body;
 
   try {
     const userId = req.user.userId;
 
+    // Update user_profile table with the provided fields
     await db.query(
-      "UPDATE user_profile SET real_name = $1, social_media = $2, dob = $3, description = $4 WHERE user_id = $5",
+      "UPDATE user_profile SET real_name = $1, social_media = $2, birthdate = $3, user_desc = $4 WHERE user_id = $5",
       [real_name, social_media, dob, description, userId]
     );
+
+    // Check if profile_photo is provided and update it if needed
+    if (profile_photo) {
+      await db.query(
+        "UPDATE user_profile SET profile_photo = $1 WHERE user_id = $2",
+        [profile_photo, userId]
+      );
+    }
 
     res.json({ message: "Profile updated successfully" });
   } catch (err) {
@@ -247,11 +240,12 @@ app.put("/api/profile", authenticateToken, async (req, res) => {
   }
 });
 
-// Endpoint to get the current user's details
+// Endpoint to get the current user's details including username and email
 app.get("/api/user-details", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId;
 
+    // Fetch current user's username and email
     const userResult = await db.query(
       "SELECT username, email FROM user_login WHERE id = $1",
       [userId]
@@ -265,6 +259,32 @@ app.get("/api/user-details", authenticateToken, async (req, res) => {
     res.json({ username: user.username, email: user.email });
   } catch (err) {
     console.error("Error fetching user details:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Endpoint to fetch host's username and email based on activity's user_id_host
+app.get("/api/activity-host/:activityId", authenticateToken, async (req, res) => {
+  try {
+    const { activityId } = req.params;
+
+    // Fetch activity details including host's user_id_host
+    const activityResult = await db.query(
+      "SELECT ul.username AS host_username, ul.email AS host_email " +
+      "FROM activity a " +
+      "JOIN user_login ul ON a.user_id_host = ul.id " +
+      "WHERE a.id = $1",
+      [activityId]
+    );
+
+    if (activityResult.rows.length === 0) {
+      return res.status(404).json({ error: "Activity not found" });
+    }
+
+    const activity = activityResult.rows[0];
+    res.json({ host_username: activity.host_username, host_email: activity.host_email });
+  } catch (err) {
+    console.error("Error fetching host details:", err);
     res.status(500).send("Server error");
   }
 });

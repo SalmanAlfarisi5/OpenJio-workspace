@@ -17,8 +17,7 @@ CREATE TABLE user_profile(
 	user_num_review INT,
 	user_review_avrg INT,
 	social_media TEXT,
-	age INT
-	profile_photo TEXT
+	birthdate TIMESTAMP WITHOUT TIME ZONE
 );
 
 CREATE TABLE activity(
@@ -31,7 +30,4 @@ CREATE TABLE activity(
 	act_date DATE,
 	location TEXT,
 	act_time TIME WITHOUT TIME ZONE,
-	host_username VARCHAR(255),
-	host_fullname VARCHAR(255),
-	host_email VARCHAR(255)
 );
