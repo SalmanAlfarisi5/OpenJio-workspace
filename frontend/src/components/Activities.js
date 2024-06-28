@@ -100,29 +100,70 @@ const Activities = () => {
   };
 
   const handleJoinClick = async (activity) => {
-    const username = localStorage.getItem("username");
-    const email = localStorage.getItem("email");
-
-    const templateParams = {
-      to_name: activity.host_username,
-      from_name: "OpenJio Support",
-      message: `${username} (${email}) is interested in joining the activity: ${activity.title}`,
-      user_email: activity.host_email,
-    };
-
+    const token = localStorage.getItem("token");
+  
+    // Check if user is authenticated
+    if (!token) {
+      console.error("User not authenticated. Redirecting to login page.");
+      navigate("/login");
+      return;
+    }
+  
     try {
+      // Fetch host's username and email
+      const hostResponse = await fetch(`/api/activity-host/${activity.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (!hostResponse.ok) {
+        console.error("Error fetching host information");
+        alert("Failed to fetch host information. Please try again later.");
+        return;
+      }
+  
+      const hostData = await hostResponse.json();
+      const { host_username, host_email } = hostData;
+  
+      // Fetch current user's username and email
+      const userResponse = await fetch(`/api/user-details`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
+      if (!userResponse.ok) {
+        console.error("Error fetching user information");
+        alert("Failed to fetch user information. Please try again later.");
+        return;
+      }
+  
+      const userData = await userResponse.json();
+      const { username: requester_username, email: requester_email } = userData;
+  
+      // Construct email template parameters
+      const templateParams = {
+        to_name: host_username,
+        from_name: "OpenJio Support",
+        message: `${requester_username} (${requester_email}) is interested in joining the activity: ${activity.title}`,
+        user_email: host_email,
+      };
+  
+      // Send email using emailjs
       await emailjs.send(
         "service_jfmlggb",
         "template_fx34iqr",
         templateParams,
         "h1VRX5prAELaGTTuh"
       );
+  
       alert("Request to join activity sent successfully!");
     } catch (error) {
       console.error("Error sending email:", error);
       alert("Failed to send the request. Please try again.");
     }
-  };
+  };  
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
