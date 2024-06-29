@@ -6,6 +6,9 @@ const db = require("./db");
 const path = require("path");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { S3Client } = require("@aws-sdk/client-s3");
+const multer = require("multer");
+const multerS3 = require("multer-s3");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -16,6 +19,29 @@ app.use(bodyParser.json());
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "frontend/build")));
 }
+
+// Configure AWS S3
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+});
+
+// Configure multer to use S3 for storage
+const upload = multer({
+  storage: multerS3({
+    s3: s3Client,
+    bucket: process.env.AWS_BUCKET_NAME,
+    metadata: (req, file, cb) => {
+      cb(null, { fieldName: file.fieldname });
+    },
+    key: (req, file, cb) => {
+      cb(null, Date.now().toString() + path.extname(file.originalname));
+    },
+  }),
+});
 
 // Middleware to authenticate JWT tokens
 const authenticateToken = (req, res, next) => {
@@ -34,6 +60,23 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+// Endpoint to upload profile photo
+app.post("/api/upload", authenticateToken, upload.single("profile_photo"), async (req, res) => {
+  const userId = req.user.userId;
+  const profilePhotoUrl = req.file.location;
+
+  try {
+    await db.query(
+      "UPDATE user_profile SET profile_photo = $1 WHERE user_id = $2",
+      [profilePhotoUrl, userId]
+    );
+    res.status(200).json({ message: "Profile photo updated successfully", profile_photo: profilePhotoUrl });
+  } catch (err) {
+    console.error("Error uploading profile photo:", err);
+    res.status(500).send("Server error");
+  }
+});
 
 // Endpoint to create a new activity
 app.post("/api/activities", authenticateToken, async (req, res) => {

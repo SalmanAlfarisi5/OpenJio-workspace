@@ -59,18 +59,32 @@ const Profile = () => {
     });
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-        setProfile({
-          ...profile,
-          profile_photo: reader.result,
+      const formData = new FormData();
+      formData.append("profile_photo", file);
+
+      const token = localStorage.getItem("token");
+
+      try {
+        const response = await axios.post("/api/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
         });
-      };
-      reader.readAsDataURL(file);
+        setImagePreview(response.data.profile_photo);
+        setProfile({ ...profile, profile_photo: response.data.profile_photo });
+        setMessage(response.data.message);
+
+        // Clear the message after 5 seconds
+        setTimeout(() => {
+          setMessage("");
+        }, 5000);
+      } catch (error) {
+        console.error("Error uploading profile photo:", error);
+      }
     }
   };
 
