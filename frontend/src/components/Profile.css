@@ -43,22 +43,6 @@ textarea::placeholder {
     color: #7A8B9E;
 }
 
-input[type="file"]+label {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #F5A623;
-    color: #1E2738;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
-    margin: 10px 0;
-}
-
-input[type="file"]+label:hover {
-    background-color: #FFD54F;
-    color: #131A2A;
-}
-
 button {
     display: inline-block;
     padding: 10px 20px;
@@ -92,7 +76,9 @@ p {
 }
 
 .profile-photo-container {
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     margin-bottom: 20px;
 }
 

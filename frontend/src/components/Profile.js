@@ -134,7 +134,16 @@ const Profile = () => {
           ) : (
             <div className="profile-photo-placeholder">No Image</div>
           )}
-          <input type="file" accept="image/*" onChange={handleFileChange} />
+          <label htmlFor="fileInput" className="file-input-label">
+            Choose File
+          </label>
+          <input
+            type="file"
+            id="fileInput"
+            accept="image/*"
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+          />
         </div>
         {isEditMode ? (
           <>
