@@ -8,6 +8,7 @@ const Activities = () => {
   const [showMyActivities, setShowMyActivities] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState("asc"); // 'asc' for ascending, 'desc' for descending
+  const [profilePhoto, setProfilePhoto] = useState("/Avatar.png"); // Default avatar
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,7 +39,30 @@ const Activities = () => {
     };
 
     fetchActivities();
+    fetchProfilePhoto(); // Fetch profile photo when component mounts
   }, [showMyActivities]);
+
+  const fetchProfilePhoto = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        const response = await fetch("/api/profile", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setProfilePhoto(data.profile_photo || "/Avatar.png");
+        } else {
+          const errorText = await response.text();
+          console.error("Error fetching profile photo:", errorText);
+        }
+      } catch (error) {
+        console.error("Error fetching profile photo:", error);
+      }
+    }
+  };
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
@@ -102,7 +126,6 @@ const Activities = () => {
   const handleJoinClick = async (activity) => {
     const token = localStorage.getItem("token");
   
-    // Check if user is authenticated
     if (!token) {
       console.error("User not authenticated. Redirecting to login page.");
       navigate("/login");
@@ -110,7 +133,6 @@ const Activities = () => {
     }
   
     try {
-      // Fetch host's username and email
       const hostResponse = await fetch(`/api/activity-host/${activity.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -126,7 +148,6 @@ const Activities = () => {
       const hostData = await hostResponse.json();
       const { host_username, host_email } = hostData;
   
-      // Fetch current user's username and email
       const userResponse = await fetch(`/api/user-details`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -142,7 +163,6 @@ const Activities = () => {
       const userData = await userResponse.json();
       const { username: requester_username, email: requester_email } = userData;
   
-      // Construct email template parameters
       const templateParams = {
         to_name: host_username,
         from_name: "OpenJio Support",
@@ -150,7 +170,6 @@ const Activities = () => {
         user_email: host_email,
       };
   
-      // Send email using emailjs
       await emailjs.send(
         "service_jfmlggb",
         "template_fx34iqr",
@@ -163,7 +182,7 @@ const Activities = () => {
       console.error("Error sending email:", error);
       alert("Failed to send the request. Please try again.");
     }
-  };  
+  };
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -190,7 +209,7 @@ const Activities = () => {
   return (
     <div className="activities-container">
       <img
-        src="/Avatar.png"
+        src={profilePhoto}
         alt="Profile"
         className="Profile"
         onClick={handleProfileClick}
