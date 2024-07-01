@@ -62,21 +62,31 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Endpoint to upload profile photo
-app.post("/api/upload", authenticateToken, upload.single("profile_photo"), async (req, res) => {
-  const userId = req.user.userId;
-  const profilePhotoUrl = req.file.location;
+app.post(
+  "/api/upload",
+  authenticateToken,
+  upload.single("profile_photo"),
+  async (req, res) => {
+    const userId = req.user.userId;
+    const profilePhotoUrl = req.file.location;
 
-  try {
-    await db.query(
-      "UPDATE user_profile SET profile_photo = $1 WHERE user_id = $2",
-      [profilePhotoUrl, userId]
-    );
-    res.status(200).json({ message: "Profile photo updated successfully", profile_photo: profilePhotoUrl });
-  } catch (err) {
-    console.error("Error uploading profile photo:", err);
-    res.status(500).send("Server error");
+    try {
+      await db.query(
+        "UPDATE user_profile SET profile_photo = $1 WHERE user_id = $2",
+        [profilePhotoUrl, userId]
+      );
+      res
+        .status(200)
+        .json({
+          message: "Profile photo updated successfully",
+          profile_photo: profilePhotoUrl,
+        });
+    } catch (err) {
+      console.error("Error uploading profile photo:", err);
+      res.status(500).send("Server error");
+    }
   }
-});
+);
 
 // Endpoint to create a new activity
 app.post("/api/activities", authenticateToken, async (req, res) => {
@@ -86,14 +96,7 @@ app.post("/api/activities", authenticateToken, async (req, res) => {
   try {
     const result = await db.query(
       "INSERT INTO activity (title, act_desc, act_date, act_time, location, user_id_host) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [
-        title,
-        act_desc,
-        act_date,
-        act_time,
-        location,
-        userId,
-      ]
+      [title, act_desc, act_date, act_time, location, userId]
     );
 
     res.status(201).json(result.rows[0]);
@@ -307,30 +310,37 @@ app.get("/api/user-details", authenticateToken, async (req, res) => {
 });
 
 // Endpoint to fetch host's username and email based on activity's user_id_host
-app.get("/api/activity-host/:activityId", authenticateToken, async (req, res) => {
-  try {
-    const { activityId } = req.params;
+app.get(
+  "/api/activity-host/:activityId",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const { activityId } = req.params;
 
-    // Fetch activity details including host's user_id_host
-    const activityResult = await db.query(
-      "SELECT ul.username AS host_username, ul.email AS host_email " +
-      "FROM activity a " +
-      "JOIN user_login ul ON a.user_id_host = ul.id " +
-      "WHERE a.id = $1",
-      [activityId]
-    );
+      // Fetch activity details including host's user_id_host
+      const activityResult = await db.query(
+        "SELECT ul.username AS host_username, ul.email AS host_email " +
+          "FROM activity a " +
+          "JOIN user_login ul ON a.user_id_host = ul.id " +
+          "WHERE a.id = $1",
+        [activityId]
+      );
 
-    if (activityResult.rows.length === 0) {
-      return res.status(404).json({ error: "Activity not found" });
+      if (activityResult.rows.length === 0) {
+        return res.status(404).json({ error: "Activity not found" });
+      }
+
+      const activity = activityResult.rows[0];
+      res.json({
+        host_username: activity.host_username,
+        host_email: activity.host_email,
+      });
+    } catch (err) {
+      console.error("Error fetching host details:", err);
+      res.status(500).send("Server error");
     }
-
-    const activity = activityResult.rows[0];
-    res.json({ host_username: activity.host_username, host_email: activity.host_email });
-  } catch (err) {
-    console.error("Error fetching host details:", err);
-    res.status(500).send("Server error");
   }
-});
+);
 
 // Endpoint to fetch all users (usernames only)
 app.get("/api/users", async (req, res) => {
