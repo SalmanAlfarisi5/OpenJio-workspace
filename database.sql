@@ -26,3 +26,22 @@ CREATE TABLE activity(
 	location TEXT,
 	act_time TIME WITHOUT TIME ZONE,
 );
+
+CREATE TABLE comments (
+    id SERIAL PRIMARY KEY,
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES user_login(id),
+    content TEXT,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE replies (
+    id SERIAL PRIMARY KEY,
+    comment_id INT,
+    FOREIGN KEY (comment_id) REFERENCES comments(id),
+    user_id INT,
+    FOREIGN KEY (user_id) REFERENCES user_login(id),
+    content TEXT,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+

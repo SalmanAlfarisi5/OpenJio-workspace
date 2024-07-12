@@ -31,7 +31,7 @@ const Login = () => {
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("username", response.data.username);
       localStorage.setItem("email", response.data.email);
-      navigate("/activities");
+      navigate("/home");
     } catch (error) {
       if (error.response && error.response.data) {
         setError(error.response.data.error);
