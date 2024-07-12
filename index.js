@@ -75,12 +75,10 @@ app.post(
         "UPDATE user_profile SET profile_photo = $1 WHERE user_id = $2",
         [profilePhotoUrl, userId]
       );
-      res
-        .status(200)
-        .json({
-          message: "Profile photo updated successfully",
-          profile_photo: profilePhotoUrl,
-        });
+      res.status(200).json({
+        message: "Profile photo updated successfully",
+        profile_photo: profilePhotoUrl,
+      });
     } catch (err) {
       console.error("Error uploading profile photo:", err);
       res.status(500).send("Server error");
@@ -381,6 +379,71 @@ app.put("/api/activities/:id", authenticateToken, async (req, res) => {
     res.status(200).json({ message: "Activity updated successfully" });
   } catch (err) {
     console.error("Error updating activity:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Comments endpoints
+
+// Create a new comment
+app.post("/api/comments", authenticateToken, async (req, res) => {
+  const { content } = req.body;
+  const userId = req.user.userId;
+
+  try {
+    const result = await db.query(
+      "INSERT INTO comments (user_id, content) VALUES ($1, $2) RETURNING *",
+      [userId, content]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error creating comment:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Create a reply to a comment
+app.post(
+  "/api/comments/:commentId/replies",
+  authenticateToken,
+  async (req, res) => {
+    const { commentId } = req.params;
+    const { content } = req.body;
+    const userId = req.user.userId;
+
+    try {
+      const result = await db.query(
+        "INSERT INTO replies (comment_id, user_id, content) VALUES ($1, $2, $3) RETURNING *",
+        [commentId, userId, content]
+      );
+      res.status(201).json(result.rows[0]);
+    } catch (err) {
+      console.error("Error creating reply:", err);
+      res.status(500).send("Server error");
+    }
+  }
+);
+
+// Get all comments with their replies
+app.get("/api/comments", async (req, res) => {
+  try {
+    const commentsResult = await db.query(
+      "SELECT c.id, c.content, c.created_at, u.username FROM comments c JOIN user_login u ON c.user_id = u.id ORDER BY c.created_at DESC"
+    );
+
+    const comments = commentsResult.rows;
+
+    for (let comment of comments) {
+      const repliesResult = await db.query(
+        "SELECT r.id, r.content, r.created_at, u.username FROM replies r JOIN user_login u ON r.user_id = u.id WHERE r.comment_id = $1 ORDER BY r.created_at ASC",
+        [comment.id]
+      );
+      comment.replies = repliesResult.rows;
+    }
+
+    res.status(200).json(comments);
+  } catch (err) {
+    console.error("Error fetching comments:", err);
     res.status(500).send("Server error");
   }
 });

@@ -1,0 +1,24 @@
+.comments-section {
+    margin-top: 20px;
+}
+
+.comment,
+.reply {
+    padding: 10px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+.reply {
+    margin-left: 20px;
+}
+
+textarea {
+    width: 100%;
+    height: 100px;
+    margin-bottom: 10px;
+}
+
+button {
+    display: block;
+}
