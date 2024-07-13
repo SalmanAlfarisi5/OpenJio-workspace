@@ -26,27 +26,6 @@ textarea {
     resize: vertical;
 }
 
-button {
-    display: inline-block;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 8px;
-    background-color: #007bff;
-    color: white;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
-button:focus,
-textarea:focus {
-    outline: none;
-    border-color: #007bff;
-}
 
 h1 {
     font-size: 36px;
