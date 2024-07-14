@@ -7,7 +7,6 @@
 body,
 html {
     overflow-x: hidden;
-
 }
 
 .activities-container {
@@ -36,9 +35,7 @@ html {
     height: 80px;
     border-radius: 50%;
     border: 2px solid #FFD700;
-
 }
-
 
 .button-link:hover {
     background-color: rgba(255, 255, 255, 0.2);
@@ -102,24 +99,29 @@ html {
     gap: 5px;
 }
 
+.edit-button,
+.delete-button,
 .join-button {
     font-size: 16px;
     border: 2px solid #FFC107;
     /* Golden border */
-    background: none;
-    color: #FFC107;
-    /* Golden text */
     padding: 5px 20px;
     border-radius: 10px;
     cursor: pointer;
     transition: background-color 0.3s, color 0.3s;
 }
 
+.join-button {
+    background: none;
+    color: #FFC107;
+    /* Golden text */
+}
+
 .join-button:hover {
     background-color: #FFC107;
     /* Golden background */
     color: #1A1A2E;
-    /* Dark text */
+    /* Dark text */
 }
 
 .search-bar {

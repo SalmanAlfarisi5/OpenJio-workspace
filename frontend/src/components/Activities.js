@@ -7,9 +7,16 @@ const Activities = () => {
   const [activities, setActivities] = useState([]);
   const [showMyActivities, setShowMyActivities] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState("asc"); // 'asc' for ascending, 'desc' for descending
-  const [profilePhoto, setProfilePhoto] = useState("/Avatar.png"); // Default avatar
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [profilePhoto, setProfilePhoto] = useState("/Avatar.png");
   const navigate = useNavigate();
+  const currentUserId = localStorage.getItem("user_id");
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    return date.toLocaleDateString('en-GB', options);
+  };
 
   useEffect(() => {
     const fetchActivities = async () => {
@@ -22,12 +29,23 @@ const Activities = () => {
         });
         if (response.ok) {
           const data = await response.json();
-          const activitiesWithMapUrls = data.map((activity) => ({
-            ...activity,
-            mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-              activity.location
-            )}`,
-          }));
+          const activitiesWithMapUrls = await Promise.all(
+            data.map(async (activity) => {
+              const hostResponse = await fetch(`/api/profile/${activity.user_id_host}`, {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              });
+              const hostData = await hostResponse.json();
+              return {
+                ...activity,
+                profile_photo: hostData.profile_photo || "/Avatar.png",
+                mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  activity.location
+                )}`,
+              };
+            })
+          );
           setActivities(activitiesWithMapUrls);
         } else {
           const errorText = await response.text();
@@ -39,7 +57,7 @@ const Activities = () => {
     };
 
     fetchActivities();
-    fetchProfilePhoto(); // Fetch profile photo when component mounts
+    fetchProfilePhoto();
   }, [showMyActivities]);
 
   const fetchProfilePhoto = async () => {
@@ -64,16 +82,14 @@ const Activities = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "long", day: "numeric" };
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, options);
-  };
-
-  const handleProfileClick = () => {
+  const handleProfileClick = (userId) => {
     const token = localStorage.getItem("token");
     if (token) {
-      navigate("/profile");
+      if (userId === currentUserId) {
+        navigate("/profile");
+      } else {
+        navigate(`/profile/${userId}`);
+      }
     } else {
       navigate("/login");
     }
@@ -125,58 +141,58 @@ const Activities = () => {
 
   const handleJoinClick = async (activity) => {
     const token = localStorage.getItem("token");
-  
+
     if (!token) {
       console.error("User not authenticated. Redirecting to login page.");
       navigate("/login");
       return;
     }
-  
+
     try {
       const hostResponse = await fetch(`/api/activity-host/${activity.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       if (!hostResponse.ok) {
         console.error("Error fetching host information");
         alert("Failed to fetch host information. Please try again later.");
         return;
       }
-  
+
       const hostData = await hostResponse.json();
       const { host_username, host_email } = hostData;
-  
+
       const userResponse = await fetch(`/api/user-details`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       if (!userResponse.ok) {
         console.error("Error fetching user information");
         alert("Failed to fetch user information. Please try again later.");
         return;
       }
-  
+
       const userData = await userResponse.json();
       const { username: requester_username, email: requester_email } = userData;
-  
+
       const templateParams = {
         to_name: host_username,
         from_name: "OpenJio Support",
         message: `${requester_username} (${requester_email}) is interested in joining the activity: ${activity.title}`,
         user_email: host_email,
       };
-  
+
       await emailjs.send(
         "service_jfmlggb",
         "template_fx34iqr",
         templateParams,
         "h1VRX5prAELaGTTuh"
       );
-  
+
       alert("Request to join activity sent successfully!");
     } catch (error) {
       console.error("Error sending email:", error);
@@ -212,7 +228,7 @@ const Activities = () => {
         src={profilePhoto}
         alt="Profile"
         className="Profile"
-        onClick={handleProfileClick}
+        onClick={() => handleProfileClick(currentUserId)}
       />
       <div className="top-button">
         <button
@@ -253,8 +269,12 @@ const Activities = () => {
         {sortedActivities.map((activity) => (
           <div key={activity.id} className="activity-block">
             <img
-              onClick={() => navigate(`/host/${activity.user_id_host}`)}
-              src={activity.avatar || "/Avatar.png"}
+              onClick={() =>
+                handleProfileClick(
+                  activity.user_id_host === currentUserId ? "" : activity.user_id_host
+                )
+              }
+              src={activity.profile_photo || "/Avatar.png"}
               alt={activity.title}
               className="activity-image"
             />
@@ -271,36 +291,36 @@ const Activities = () => {
                   href={activity.mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="maps-link"
                 >
                   {activity.location}
                 </a>
               </span>
             </p>
-            <div className="button-container">
-              {showMyActivities ? (
-                <>
-                  <button
-                    className="edit-button"
-                    onClick={() => handleEditClick(activity)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="delete-button"
-                    onClick={() => handleDeleteClick(activity.id)}
-                  >
-                    Delete
-                  </button>
-                </>
-              ) : (
+            {!showMyActivities && (
+              <button
+                className="button join-button"
+                onClick={() => handleJoinClick(activity)}
+              >
+                Join
+              </button>
+            )}
+            {showMyActivities && (
+              <div className="button-container">
                 <button
-                  className="join-button"
-                  onClick={() => handleJoinClick(activity)}
+                  className="button delete-button"
+                  onClick={() => handleDeleteClick(activity.id)}
                 >
-                  Join
+                  Delete
                 </button>
-              )}
-            </div>
+                <button
+                  className="button edit-button"
+                  onClick={() => handleEditClick(activity)}
+                >
+                  Edit
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>

@@ -107,7 +107,11 @@ app.post("/api/activities", authenticateToken, async (req, res) => {
 // Endpoint to fetch all activities
 app.get("/api/activities", async (req, res) => {
   try {
-    const result = await db.query("SELECT * FROM activity");
+    const result = await db.query(`
+      SELECT a.*, up.profile_photo 
+      FROM activity a 
+      JOIN user_profile up ON a.user_id_host = up.user_id
+    `);
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Error fetching activities:", err);
@@ -217,6 +221,7 @@ app.post("/api/login", async (req, res) => {
       token,
       username: user.username,
       email: user.email,
+      id: user.id
     });
   } catch (err) {
     console.error("Error during login:", err);
@@ -225,10 +230,10 @@ app.post("/api/login", async (req, res) => {
 });
 
 // Endpoint to get the user's profile
-app.get("/api/profile", authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.userId;
+app.get("/api/profile/:userId?", authenticateToken, async (req, res) => {
+  const userId = req.params.userId || req.user.userId;
 
+  try {
     const profileResult = await db.query(
       "SELECT * FROM user_profile WHERE user_id = $1",
       [userId]
@@ -248,13 +253,51 @@ app.get("/api/profile", authenticateToken, async (req, res) => {
       social_media: profile.social_media,
       dob: profile.birthdate,
       description: profile.user_desc,
-      profile_photo: profile.profile_photo, // To be implemented later where user can upload their photo also
+      profile_photo: profile.profile_photo,
     });
   } catch (err) {
     console.error("Error fetching profile:", err);
     res.status(500).send("Server error");
   }
 });
+
+// Endpoint to fetch a user's profile by their ID
+app.get("/api/profile/:userId", authenticateToken, async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const profileResult = await db.query(
+      "SELECT * FROM user_profile WHERE user_id = $1",
+      [userId]
+    );
+    if (profileResult.rows.length === 0) {
+      return res.status(404).json({ error: "Profile not found" });
+    }
+
+    const profile = profileResult.rows[0];
+
+    const userResult = await db.query(
+      "SELECT * FROM user_login WHERE id = $1",
+      [userId]
+    );
+    const user = userResult.rows[0];
+
+    res.json({
+      real_name: profile.real_name,
+      username: user.username,
+      email: user.email,
+      social_media: profile.social_media,
+      dob: profile.birthdate,
+      description: profile.user_desc,
+      profile_photo: profile.profile_photo,
+    });
+  } catch (err) {
+    console.error("Error fetching profile:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+
 
 // Endpoint for updating user profile
 app.put("/api/profile", authenticateToken, async (req, res) => {
