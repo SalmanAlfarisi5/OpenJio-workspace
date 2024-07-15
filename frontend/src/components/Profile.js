@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./Profile.css";
 
 const Profile = () => {
@@ -19,6 +19,8 @@ const Profile = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const navigate = useNavigate();
+  const { userId } = useParams(); // Get userId from URL params
+  const currentUserId = localStorage.getItem("user_id"); // Assuming you store current user id in local storage
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -27,7 +29,7 @@ const Profile = () => {
     } else {
       const fetchProfile = async () => {
         try {
-          const response = await axios.get("/api/profile", {
+          const response = await axios.get(`/api/profile${userId ? `/${userId}` : ''}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           setProfile(response.data);
@@ -39,7 +41,7 @@ const Profile = () => {
       };
       fetchProfile();
     }
-  }, [navigate]);
+  }, [navigate, userId]);
 
   const enterEditMode = () => {
     setIsEditMode(true);
@@ -134,16 +136,20 @@ const Profile = () => {
           ) : (
             <div className="profile-photo-placeholder">No Image</div>
           )}
-          <label htmlFor="fileInput" className="file-input-label">
-            Choose File
-          </label>
-          <input
-            type="file"
-            id="fileInput"
-            accept="image/*"
-            onChange={handleFileChange}
-            style={{ display: "none" }}
-          />
+          {(!userId || userId === currentUserId) && (
+            <>
+              <label htmlFor="fileInput" className="file-input-label">
+                Choose File
+              </label>
+              <input
+                type="file"
+                id="fileInput"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+              />
+            </>
+          )}
         </div>
         {isEditMode ? (
           <>
@@ -216,14 +222,18 @@ const Profile = () => {
               <h3>Description:</h3>
               <p>{profile.description}</p>
             </div>
-            <button onClick={enterEditMode}>Edit</button>
+            {(!userId || userId === currentUserId) && (
+              <button onClick={enterEditMode}>Edit</button>
+            )}
           </>
         )}
       </form>
       {message && <p>{message}</p>}
-      <button className="logout-button" onClick={handleLogout}>
-        Logout
-      </button>
+      {(!userId || userId === currentUserId) && (
+        <button className="logout-button" onClick={handleLogout}>
+          Logout
+        </button>
+      )}
     </div>
   );
 };

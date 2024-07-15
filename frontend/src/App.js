@@ -59,6 +59,7 @@ const App = () => {
         <Route path="/learnmore" element={<LearnMore />} />
         <Route path="/forum" element={<Forum />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/:userId" element={<Profile />} /> {/* Dynamic route for host profile */}
         <Route path="/createactivity" element={<CreateActivity />} />
         <Route path="/host" element={<Host />} />
       </Routes>

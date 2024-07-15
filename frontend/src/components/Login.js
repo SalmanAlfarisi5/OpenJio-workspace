@@ -28,9 +28,19 @@ const Login = () => {
       console.log("Login successful:", response.data);
       setSuccess("Login successful!");
       setError("");
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("username", response.data.username);
-      localStorage.setItem("email", response.data.email);
+      
+      // Ensure these keys match what your backend sends
+      const { token, username, email, id } = response.data;
+      localStorage.setItem("token", token);
+      localStorage.setItem("username", username);
+      localStorage.setItem("email", email);
+      localStorage.setItem("user_id", id);
+      console.log(localStorage.getItem("user_id"));
+
+      // Debugging - log values to verify they are correctly stored
+      console.log("Stored user_id:", localStorage.getItem("user_id"));
+      console.log("Stored token:", localStorage.getItem("token"));
+
       navigate("/home");
     } catch (error) {
       if (error.response && error.response.data) {
