@@ -298,12 +298,20 @@ const Activities = () => {
               </span>
             </p>
             {!showMyActivities && (
-              <button
-                className="button join-button"
-                onClick={() => handleJoinClick(activity)}
-              >
-                Join
-              </button>
+              <>
+                {String(activity.user_id_host) === currentUserId ? (
+                  <button className="button joined-button" disabled>
+                    Joined
+                  </button>
+                ) : (
+                  <button
+                    className="button join-button"
+                    onClick={() => handleJoinClick(activity)}
+                  >
+                    Join
+                  </button>
+                )}
+              </>
             )}
             {showMyActivities && (
               <div className="button-container">

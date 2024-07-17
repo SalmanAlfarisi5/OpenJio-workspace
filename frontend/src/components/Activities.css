@@ -101,7 +101,8 @@ html {
 
 .edit-button,
 .delete-button,
-.join-button {
+.join-button,
+.joined-button {
     font-size: 16px;
     border: 2px solid #FFC107;
     /* Golden border */
@@ -122,6 +123,19 @@ html {
     /* Golden background */
     color: #1A1A2E;
     /* Dark text */
+}
+
+.joined-button {
+    background-color: #FFC107;
+    /* Orange background */
+    color: black;
+    /* Black text */
+}
+
+.joined-button:hover {
+    background-color: #E59400;
+    /* Slightly darker orange on hover */
+    color: black;
 }
 
 .search-bar {
