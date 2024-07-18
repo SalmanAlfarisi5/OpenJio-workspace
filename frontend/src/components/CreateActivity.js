@@ -11,6 +11,7 @@ const CreateActivity = () => {
     act_date: "",
     act_time: "",
     location: "",
+    num_people: 0,
   });
 
   useEffect(() => {
@@ -21,6 +22,7 @@ const CreateActivity = () => {
         act_date: activityToEdit.act_date,
         act_time: activityToEdit.act_time,
         location: activityToEdit.location,
+        num_people: activityToEdit.num_people,
       });
     }
   }, [activityToEdit]);
@@ -115,6 +117,14 @@ const CreateActivity = () => {
           name="location"
           placeholder="Location"
           value={formData.location}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="number"
+          name="num_people"
+          placeholder="Number of People"
+          value={formData.num_people}
           onChange={handleChange}
           required
         />

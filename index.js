@@ -88,13 +88,13 @@ app.post(
 
 // Endpoint to create a new activity
 app.post("/api/activities", authenticateToken, async (req, res) => {
-  const { title, act_desc, location, act_date, act_time } = req.body;
+  const { title, act_desc, location, act_date, act_time, num_people } = req.body;
   const userId = req.user.userId;
 
   try {
     const result = await db.query(
-      "INSERT INTO activity (title, act_desc, act_date, act_time, location, user_id_host) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [title, act_desc, act_date, act_time, location, userId]
+      "INSERT INTO activity (title, act_desc, act_date, act_time, location, user_id_host, num_people) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
+      [title, act_desc, act_date, act_time, location, userId, num_people]
     );
 
     res.status(201).json(result.rows[0]);
@@ -487,6 +487,167 @@ app.get("/api/comments", async (req, res) => {
     res.status(200).json(comments);
   } catch (err) {
     console.error("Error fetching comments:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Endpoint to fetch join requests for the host
+app.get("/api/join-requests", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const result = await db.query(
+      `SELECT jr.id, jr.activity_id, jr.requester_id, ul.username, up.profile_photo, a.title AS activity_title
+       FROM join_requests jr
+       JOIN user_login ul ON jr.requester_id = ul.id
+       JOIN user_profile up ON ul.id = up.user_id
+       JOIN activity a ON jr.activity_id = a.id
+       WHERE a.user_id_host = $1 AND jr.status = 'pending'`,
+      [userId]
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching join requests:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Endpoint to create a join request
+app.post("/api/join-requests", authenticateToken, async (req, res) => {
+  const { activity_id } = req.body;
+  const requester_id = req.user.userId;
+
+  try {
+    await db.query(
+      "INSERT INTO join_requests (activity_id, requester_id) VALUES ($1, $2)",
+      [activity_id, requester_id]
+    );
+
+    res.status(201).json({ message: "Join request sent successfully" });
+  } catch (err) {
+    console.error("Error creating join request:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Endpoint to update join request status
+app.put("/api/join-request/:id", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const result = await db.query(
+      "UPDATE join_requests SET status = $1 WHERE id = $2 RETURNING *",
+      [status, id]
+    );
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error updating join request:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Endpoint to fetch pending join requests for the current user
+app.get("/api/user-pending-requests/:userId", authenticateToken, async (req, res) => {
+  const userId = req.params.userId;
+  
+  try {
+    const result = await db.query(
+      `SELECT jr.id, jr.activity_id, jr.requester_id, jr.status, a.title AS activity_title
+       FROM join_requests jr
+       JOIN activity a ON jr.activity_id = a.id
+       WHERE jr.requester_id = $1 AND jr.status = 'pending'`,
+      [userId]
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching pending requests:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Accept Join Request Endpoint
+app.post("/api/join-requests/:id/accept", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const requestResult = await db.query("SELECT * FROM join_requests WHERE id = $1", [id]);
+    if (requestResult.rows.length === 0) {
+      return res.status(404).json({ error: "Join request not found" });
+    }
+
+    const request = requestResult.rows[0];
+    const { activity_id, requester_id } = request;
+
+    // Increment num_people_joined in activity table
+    await db.query("UPDATE activity SET num_people_joined = num_people_joined + 1 WHERE id = $1", [activity_id]);
+
+    // Update user's activity slots
+    const slotsResult = await db.query(
+      "SELECT activity_slot_1, activity_slot_2, activity_slot_3, activity_slot_4, activity_slot_5, activity_slot_6, activity_slot_7, activity_slot_8, activity_slot_9, activity_slot_10 FROM user_profile WHERE user_id = $1",
+      [requester_id]
+    );
+
+    const slots = slotsResult.rows[0];
+    let updated = false;
+    for (let i = 1; i <= 10; i++) {
+      if (slots[`activity_slot_${i}`] === null) {
+        await db.query(
+          `UPDATE user_profile SET activity_slot_${i} = $1, activities_joined = activities_joined + 1 WHERE user_id = $2`,
+          [activity_id, requester_id]
+        );
+        updated = true;
+        break;
+      }
+    }
+
+    if (!updated) {
+      return res.status(400).json({ error: "User has joined too many activities" });
+    }
+
+    // Remove join request
+    await db.query("DELETE FROM join_requests WHERE id = $1", [id]);
+
+    res.status(200).json({ message: "Join request accepted" });
+  } catch (err) {
+    console.error("Error accepting join request:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Reject Join Request Endpoint
+app.post("/api/join-requests/:id/reject", authenticateToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await db.query("DELETE FROM join_requests WHERE id = $1 RETURNING *", [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Join request not found" });
+    }
+
+    res.status(200).json({ message: "Join request rejected" });
+  } catch (err) {
+    console.error("Error rejecting join request:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Endpoint to fetch user activity slots
+app.get("/api/user-activity-slots/:userId", authenticateToken, async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const result = await db.query(
+      "SELECT activity_slot_1, activity_slot_2, activity_slot_3, activity_slot_4, activity_slot_5, activity_slot_6, activity_slot_7, activity_slot_8, activity_slot_9, activity_slot_10 FROM user_profile WHERE user_id = $1",
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "User profile not found" });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error fetching user activity slots:", err);
     res.status(500).send("Server error");
   }
 });

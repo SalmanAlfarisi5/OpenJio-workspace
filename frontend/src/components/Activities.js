@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import "./Activities.css";
 import { useNavigate } from "react-router-dom";
 import emailjs from "emailjs-com";
@@ -9,56 +9,17 @@ const Activities = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [profilePhoto, setProfilePhoto] = useState("/Avatar.png");
+  const [showRequests, setShowRequests] = useState(false);
+  const [requests, setRequests] = useState([]);
+  const [requestedActivities, setRequestedActivities] = useState([]);
   const navigate = useNavigate();
   const currentUserId = localStorage.getItem("user_id");
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const options = { day: 'numeric', month: 'long', year: 'numeric' };
-    return date.toLocaleDateString('en-GB', options);
+    const options = { day: "numeric", month: "long", year: "numeric" };
+    return date.toLocaleDateString("en-GB", options);
   };
-
-  useEffect(() => {
-    const fetchActivities = async () => {
-      const url = showMyActivities ? "/api/my-activities" : "/api/activities";
-      try {
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          const activitiesWithMapUrls = await Promise.all(
-            data.map(async (activity) => {
-              const hostResponse = await fetch(`/api/profile/${activity.user_id_host}`, {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-              });
-              const hostData = await hostResponse.json();
-              return {
-                ...activity,
-                profile_photo: hostData.profile_photo || "/Avatar.png",
-                mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                  activity.location
-                )}`,
-              };
-            })
-          );
-          setActivities(activitiesWithMapUrls);
-        } else {
-          const errorText = await response.text();
-          console.error("Error fetching activities:", errorText);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-      }
-    };
-
-    fetchActivities();
-    fetchProfilePhoto();
-  }, [showMyActivities]);
 
   const fetchProfilePhoto = async () => {
     const token = localStorage.getItem("token");
@@ -81,6 +42,133 @@ const Activities = () => {
       }
     }
   };
+
+  const fetchJoinRequests = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch("/api/join-requests", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Fetched join requests: ", data); // Log to inspect the fetched data
+        setRequests(data);
+      } else {
+        const errorText = await response.text();
+        console.error("Error fetching join requests:", errorText);
+      }
+    } catch (error) {
+      console.error("Error fetching join requests:", error);
+    }
+  };
+
+  const fetchPendingRequests = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`/api/user-pending-requests/${currentUserId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setRequestedActivities(data.map(request => request.activity_id));
+      } else {
+        const errorText = await response.text();
+        console.error("Error fetching pending requests:", errorText);
+      }
+    } catch (error) {
+      console.error("Error fetching pending requests:", error);
+    }
+  }, [currentUserId]);
+
+  const fetchUserActivitySlots = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`/api/user-activity-slots/${currentUserId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return data;
+      } else {
+        const errorText = await response.text();
+        console.error("Error fetching user activity slots:", errorText);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching user activity slots:", error);
+      return null;
+    }
+  }, [currentUserId]);
+
+  useEffect(() => {
+    const fetchActivitiesAndSlots = async () => {
+      const url = showMyActivities ? "/api/my-activities" : "/api/activities";
+      const token = localStorage.getItem("token");
+
+      try {
+        const [activitiesResponse, slotsResponse] = await Promise.all([
+          fetch(url, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          fetchUserActivitySlots(),
+        ]);
+
+        if (activitiesResponse.ok && slotsResponse) {
+          const activitiesData = await activitiesResponse.json();
+          const activitiesWithMapUrls = await Promise.all(
+            activitiesData.map(async (activity) => {
+              const hostResponse = await fetch(`/api/profile/${activity.user_id_host}`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+              const hostData = await hostResponse.json();
+              return {
+                ...activity,
+                profile_photo: hostData.profile_photo || "/Avatar.png",
+                mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  activity.location
+                )}`,
+              };
+            })
+          );
+          setActivities(activitiesWithMapUrls);
+
+          // Match activities with user activity slots
+          const matchedActivities = activitiesWithMapUrls.map(activity => {
+            const isJoined = Object.values(slotsResponse).includes(activity.id);
+            return {
+              ...activity,
+              isJoined,
+              isFull: activity.num_people_joined >= activity.num_people
+            };
+          });
+          setActivities(matchedActivities);
+        } else {
+          const errorText = await activitiesResponse.text();
+          console.error("Error fetching activities:", errorText);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    };
+
+    fetchActivitiesAndSlots();
+    fetchProfilePhoto();
+    fetchJoinRequests();
+    fetchPendingRequests();
+  }, [showMyActivities, fetchPendingRequests, fetchUserActivitySlots]);
 
   const handleProfileClick = (userId) => {
     const token = localStorage.getItem("token");
@@ -113,6 +201,10 @@ const Activities = () => {
       console.error("No token found, please login first");
       navigate("/login");
     }
+  };
+
+  const handleRequestListClick = () => {
+    setShowRequests((prev) => !prev);
   };
 
   const handleDeleteClick = async (activityId) => {
@@ -149,6 +241,19 @@ const Activities = () => {
     }
 
     try {
+      const userActivitySlotsResponse = await fetchUserActivitySlots();
+      const userActivities = Object.values(userActivitySlotsResponse);
+
+      if (userActivities.includes(activity.id)) {
+        alert("You have already joined this activity.");
+        return;
+      }
+
+      if (userActivities.filter(id => id !== null).length >= 10) {
+        alert("You have joined too many activities!");
+        return;
+      }
+
       const hostResponse = await fetch(`/api/activity-host/${activity.id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -193,10 +298,75 @@ const Activities = () => {
         "h1VRX5prAELaGTTuh"
       );
 
+      // Add new join request to database
+      const joinRequestResponse = await fetch("/api/join-requests", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          activity_id: activity.id,
+          requester_id: currentUserId,
+        }),
+      });
+
+      if (!joinRequestResponse.ok) {
+        const errorText = await joinRequestResponse.text();
+        console.error("Error creating join request:", errorText);
+        alert("Failed to send the request. Please try again.");
+        return;
+      }
+
+      fetchPendingRequests();
+      setRequestedActivities((prev) => [...prev, activity.id]);
+
       alert("Request to join activity sent successfully!");
     } catch (error) {
-      console.error("Error sending email:", error);
+      console.error("Error sending email and creating join request:", error);
       alert("Failed to send the request. Please try again.");
+    }
+  };
+
+  const handleAcceptRequest = async (requestId) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`/api/join-requests/${requestId}/accept`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        fetchJoinRequests();
+      } else {
+        const errorText = await response.text();
+        console.error("Error accepting join request:", errorText);
+      }
+    } catch (error) {
+      console.error("Error accepting join request:", error);
+    }
+  };
+
+  const handleRejectRequest = async (requestId) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`/api/join-requests/${requestId}/reject`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        fetchJoinRequests();
+      } else {
+        const errorText = await response.text();
+        console.error("Error rejecting join request:", errorText);
+      }
+    } catch (error) {
+      console.error("Error rejecting join request:", error);
     }
   };
 
@@ -233,6 +403,12 @@ const Activities = () => {
       <div className="top-button">
         <button
           className="button button-link"
+          onClick={handleRequestListClick}
+        >
+          Request List
+        </button>
+        <button
+          className="button button-link"
           onClick={handleMyActivitiesClick}
         >
           {showMyActivities ? "All Activities" : "My Activities"}
@@ -265,6 +441,41 @@ const Activities = () => {
           </select>
         </div>
       </div>
+      {showRequests && (
+        <div className="request-list">
+          <h3>Requests</h3>
+          <div className="request-list-content">
+            {requests.length === 0 ? (
+              <p className="no-requests">No requests at the moment</p>
+            ) : (
+              requests.map((request) => (
+                <div key={request.id} className="request-item">
+                  <img
+                    src={request.profile_photo || "/Avatar.png"}
+                    alt={request.username}
+                    className="requester-image"
+                    onClick={() => handleProfileClick(request.requester_id)}
+                  />
+                  <span>{request.username} would like to join your activity, {request.activity_title}!</span>
+                  <button
+                    className="accept-button"
+                    onClick={() => handleAcceptRequest(request.id)}
+                  >
+                    Accept
+                  </button>
+                  <button
+                    className="reject-button"
+                    onClick={() => handleRejectRequest(request.id)}
+                  >
+                    Reject
+                  </button>
+                </div>
+                
+              ))
+            )}
+          </div>
+        </div>
+      )}
       <div className="activities-list">
         {sortedActivities.map((activity) => (
           <div key={activity.id} className="activity-block">
@@ -296,12 +507,28 @@ const Activities = () => {
                   {activity.location}
                 </a>
               </span>
+              <br />
+              <span>
+                People: {activity.num_people_joined} / {activity.num_people}
+              </span>
             </p>
             {!showMyActivities && (
               <>
                 {String(activity.user_id_host) === currentUserId ? (
                   <button className="button joined-button" disabled>
                     Joined
+                  </button>
+                ) : activity.isJoined ? (
+                  <button className="button joined-button" disabled>
+                    Joined
+                  </button>
+                ) : activity.isFull ? (
+                  <button className="button full-button" disabled>
+                    Full
+                  </button>
+                ) : requestedActivities.includes(activity.id) ? (
+                  <button className="button requested-button" disabled>
+                    Requested
                   </button>
                 ) : (
                   <button
