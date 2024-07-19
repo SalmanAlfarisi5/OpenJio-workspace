@@ -88,7 +88,8 @@ app.post(
 
 // Endpoint to create a new activity
 app.post("/api/activities", authenticateToken, async (req, res) => {
-  const { title, act_desc, location, act_date, act_time, num_people } = req.body;
+  const { title, act_desc, location, act_date, act_time, num_people } =
+    req.body;
   const userId = req.user.userId;
 
   try {
@@ -221,7 +222,7 @@ app.post("/api/login", async (req, res) => {
       token,
       username: user.username,
       email: user.email,
-      id: user.id
+      id: user.id,
     });
   } catch (err) {
     console.error("Error during login:", err);
@@ -296,8 +297,6 @@ app.get("/api/profile/:userId", authenticateToken, async (req, res) => {
     res.status(500).send("Server error");
   }
 });
-
-
 
 // Endpoint for updating user profile
 app.put("/api/profile", authenticateToken, async (req, res) => {
@@ -547,116 +546,147 @@ app.put("/api/join-request/:id", authenticateToken, async (req, res) => {
 });
 
 // Endpoint to fetch pending join requests for the current user
-app.get("/api/user-pending-requests/:userId", authenticateToken, async (req, res) => {
-  const userId = req.params.userId;
-  
-  try {
-    const result = await db.query(
-      `SELECT jr.id, jr.activity_id, jr.requester_id, jr.status, a.title AS activity_title
+app.get(
+  "/api/user-pending-requests/:userId",
+  authenticateToken,
+  async (req, res) => {
+    const userId = req.params.userId;
+
+    try {
+      const result = await db.query(
+        `SELECT jr.id, jr.activity_id, jr.requester_id, jr.status, a.title AS activity_title
        FROM join_requests jr
        JOIN activity a ON jr.activity_id = a.id
        WHERE jr.requester_id = $1 AND jr.status = 'pending'`,
-      [userId]
-    );
-    res.status(200).json(result.rows);
-  } catch (err) {
-    console.error("Error fetching pending requests:", err);
-    res.status(500).send("Server error");
+        [userId]
+      );
+      res.status(200).json(result.rows);
+    } catch (err) {
+      console.error("Error fetching pending requests:", err);
+      res.status(500).send("Server error");
+    }
   }
-});
+);
 
 // Accept Join Request Endpoint
-app.post("/api/join-requests/:id/accept", authenticateToken, async (req, res) => {
-  const { id } = req.params;
+app.post(
+  "/api/join-requests/:id/accept",
+  authenticateToken,
+  async (req, res) => {
+    const { id } = req.params;
 
-  try {
-    const requestResult = await db.query("SELECT * FROM join_requests WHERE id = $1", [id]);
-    if (requestResult.rows.length === 0) {
-      return res.status(404).json({ error: "Join request not found" });
-    }
-
-    const request = requestResult.rows[0];
-    const { activity_id, requester_id } = request;
-
-    // Increment num_people_joined in activity table
-    await db.query("UPDATE activity SET num_people_joined = num_people_joined + 1 WHERE id = $1", [activity_id]);
-
-    // Update user's activity slots
-    const slotsResult = await db.query(
-      "SELECT activity_slot_1, activity_slot_2, activity_slot_3, activity_slot_4, activity_slot_5, activity_slot_6, activity_slot_7, activity_slot_8, activity_slot_9, activity_slot_10 FROM user_profile WHERE user_id = $1",
-      [requester_id]
-    );
-
-    const slots = slotsResult.rows[0];
-    let updated = false;
-    for (let i = 1; i <= 10; i++) {
-      if (slots[`activity_slot_${i}`] === null) {
-        await db.query(
-          `UPDATE user_profile SET activity_slot_${i} = $1, activities_joined = activities_joined + 1 WHERE user_id = $2`,
-          [activity_id, requester_id]
-        );
-        updated = true;
-        break;
+    try {
+      const requestResult = await db.query(
+        "SELECT * FROM join_requests WHERE id = $1",
+        [id]
+      );
+      if (requestResult.rows.length === 0) {
+        return res.status(404).json({ error: "Join request not found" });
       }
+
+      const request = requestResult.rows[0];
+      const { activity_id, requester_id } = request;
+
+      // Increment num_people_joined in activity table
+      await db.query(
+        "UPDATE activity SET num_people_joined = num_people_joined + 1 WHERE id = $1",
+        [activity_id]
+      );
+
+      // Update user's activity slots
+      const slotsResult = await db.query(
+        "SELECT activity_slot_1, activity_slot_2, activity_slot_3, activity_slot_4, activity_slot_5, activity_slot_6, activity_slot_7, activity_slot_8, activity_slot_9, activity_slot_10 FROM user_profile WHERE user_id = $1",
+        [requester_id]
+      );
+
+      const slots = slotsResult.rows[0];
+      let updated = false;
+      for (let i = 1; i <= 10; i++) {
+        if (slots[`activity_slot_${i}`] === null) {
+          await db.query(
+            `UPDATE user_profile SET activity_slot_${i} = $1, activities_joined = activities_joined + 1 WHERE user_id = $2`,
+            [activity_id, requester_id]
+          );
+          updated = true;
+          break;
+        }
+      }
+
+      if (!updated) {
+        return res
+          .status(400)
+          .json({ error: "User has joined too many activities" });
+      }
+
+      // Remove join request
+      await db.query("DELETE FROM join_requests WHERE id = $1", [id]);
+
+      res.status(200).json({ message: "Join request accepted" });
+    } catch (err) {
+      console.error("Error accepting join request:", err);
+      res.status(500).send("Server error");
     }
-
-    if (!updated) {
-      return res.status(400).json({ error: "User has joined too many activities" });
-    }
-
-    // Remove join request
-    await db.query("DELETE FROM join_requests WHERE id = $1", [id]);
-
-    res.status(200).json({ message: "Join request accepted" });
-  } catch (err) {
-    console.error("Error accepting join request:", err);
-    res.status(500).send("Server error");
   }
-});
+);
 
 // Reject Join Request Endpoint
-app.post("/api/join-requests/:id/reject", authenticateToken, async (req, res) => {
-  const { id } = req.params;
+app.post(
+  "/api/join-requests/:id/reject",
+  authenticateToken,
+  async (req, res) => {
+    const { id } = req.params;
 
-  try {
-    const result = await db.query("DELETE FROM join_requests WHERE id = $1 RETURNING *", [id]);
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Join request not found" });
+    try {
+      const result = await db.query(
+        "DELETE FROM join_requests WHERE id = $1 RETURNING *",
+        [id]
+      );
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: "Join request not found" });
+      }
+
+      res.status(200).json({ message: "Join request rejected" });
+    } catch (err) {
+      console.error("Error rejecting join request:", err);
+      res.status(500).send("Server error");
     }
-
-    res.status(200).json({ message: "Join request rejected" });
-  } catch (err) {
-    console.error("Error rejecting join request:", err);
-    res.status(500).send("Server error");
   }
-});
+);
 
 // Endpoint to fetch user activity slots
-app.get("/api/user-activity-slots/:userId", authenticateToken, async (req, res) => {
-  const { userId } = req.params;
+app.get(
+  "/api/user-activity-slots/:userId",
+  authenticateToken,
+  async (req, res) => {
+    const { userId } = req.params;
 
-  try {
-    const result = await db.query(
-      "SELECT activity_slot_1, activity_slot_2, activity_slot_3, activity_slot_4, activity_slot_5, activity_slot_6, activity_slot_7, activity_slot_8, activity_slot_9, activity_slot_10 FROM user_profile WHERE user_id = $1",
-      [userId]
-    );
+    try {
+      const result = await db.query(
+        "SELECT activity_slot_1, activity_slot_2, activity_slot_3, activity_slot_4, activity_slot_5, activity_slot_6, activity_slot_7, activity_slot_8, activity_slot_9, activity_slot_10 FROM user_profile WHERE user_id = $1",
+        [userId]
+      );
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "User profile not found" });
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: "User profile not found" });
+      }
+
+      res.status(200).json(result.rows[0]);
+    } catch (err) {
+      console.error("Error fetching user activity slots:", err);
+      res.status(500).send("Server error");
     }
-
-    res.status(200).json(result.rows[0]);
-  } catch (err) {
-    console.error("Error fetching user activity slots:", err);
-    res.status(500).send("Server error");
   }
-});
+);
 
 //Endpoint to fetch user that has joined the activity
-app.get("/api/activity-users/:activityId", authenticateToken, async (req, res) => {
-  const { activityId } = req.params;
-  try {
-    const result = await db.query(`
+app.get(
+  "/api/activity-users/:activityId",
+  authenticateToken,
+  async (req, res) => {
+    const { activityId } = req.params;
+    try {
+      const result = await db.query(
+        `
       SELECT ul.id, ul.username, up.profile_photo
       FROM user_login ul
       JOIN user_profile up ON ul.id = up.user_id
@@ -664,63 +694,75 @@ app.get("/api/activity-users/:activityId", authenticateToken, async (req, res) =
                            up.activity_slot_4, up.activity_slot_5, up.activity_slot_6, 
                            up.activity_slot_7, up.activity_slot_8, up.activity_slot_9, 
                            up.activity_slot_10])`,
-      [activityId]);
+        [activityId]
+      );
 
-    res.status(200).json(result.rows);
-  } catch (err) {
-    console.error("Error fetching users:", err);
-    res.status(500).send("Server error");
+      res.status(200).json(result.rows);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+      res.status(500).send("Server error");
+    }
   }
-});
-
+);
 
 // Endpoint to remove a user from an activity
-app.delete("/api/remove-user/:activityId/:userId", authenticateToken, async (req, res) => {
-  const activityId = parseInt(req.params.activityId, 10); // Convert activityId to integer
-  const { userId } = req.params;
+app.delete(
+  "/api/remove-user/:activityId/:userId",
+  authenticateToken,
+  async (req, res) => {
+    const activityId = parseInt(req.params.activityId, 10); // Convert activityId to integer
+    const { userId } = req.params;
 
-  try {
-    await db.query("BEGIN");
+    try {
+      await db.query("BEGIN");
 
-    // Decrement the number of people joined
-    await db.query("UPDATE activity SET num_people_joined = num_people_joined - 1 WHERE id = $1", [activityId]);
+      // Decrement the number of people joined
+      await db.query(
+        "UPDATE activity SET num_people_joined = num_people_joined - 1 WHERE id = $1",
+        [activityId]
+      );
 
-    // Fetch the user's profile
-    const userProfileResult = await db.query("SELECT * FROM user_profile WHERE user_id = $1", [userId]);
-    const userProfile = userProfileResult.rows[0];
+      // Fetch the user's profile
+      const userProfileResult = await db.query(
+        "SELECT * FROM user_profile WHERE user_id = $1",
+        [userId]
+      );
+      const userProfile = userProfileResult.rows[0];
 
-    // Find the activity slot containing the activity ID and set it to NULL
-    const updatedSlots = Object.keys(userProfile)
-      .filter(key => key.startsWith("activity_slot_"))
-      .reduce((acc, key) => {
-        acc[key] = userProfile[key] === activityId ? null : userProfile[key];
-        return acc;
-      }, {});
+      // Find the activity slot containing the activity ID and set it to NULL
+      const updatedSlots = Object.keys(userProfile)
+        .filter((key) => key.startsWith("activity_slot_"))
+        .reduce((acc, key) => {
+          acc[key] = userProfile[key] === activityId ? null : userProfile[key];
+          return acc;
+        }, {});
 
-    // Update the user's activity slots in the database
-    for (const [key, value] of Object.entries(updatedSlots)) {
-      if (value === null) {
-        const query = `UPDATE user_profile SET ${key} = NULL WHERE user_id = $1`;
-        await db.query(query, [userId]);
-      } else {
-        const query = `UPDATE user_profile SET ${key} = $1 WHERE user_id = $2`;
-        await db.query(query, [value, userId]);
+      // Update the user's activity slots in the database
+      for (const [key, value] of Object.entries(updatedSlots)) {
+        if (value === null) {
+          const query = `UPDATE user_profile SET ${key} = NULL WHERE user_id = $1`;
+          await db.query(query, [userId]);
+        } else {
+          const query = `UPDATE user_profile SET ${key} = $1 WHERE user_id = $2`;
+          await db.query(query, [value, userId]);
+        }
       }
+
+      await db.query(
+        "UPDATE user_profile SET activities_joined = activities_joined - 1 WHERE user_id = $1",
+        [userId]
+      );
+
+      await db.query("COMMIT");
+
+      res.status(200).json({ message: "User removed successfully" });
+    } catch (err) {
+      await db.query("ROLLBACK");
+      console.error("Error removing user:", err);
+      res.status(500).send("Server error");
     }
-
-    await db.query("UPDATE user_profile SET activities_joined = activities_joined - 1 WHERE user_id = $1", [userId]);
-
-    await db.query("COMMIT");
-
-    res.status(200).json({ message: "User removed successfully" });
-  } catch (err) {
-    await db.query("ROLLBACK");
-    console.error("Error removing user:", err);
-    res.status(500).send("Server error");
   }
-});
-
-
+);
 
 // Serve the React app for all other routes
 app.get("*", (req, res) => {
