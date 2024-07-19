@@ -13,7 +13,18 @@ CREATE TABLE user_profile(
 	user_desc VARCHAR(255),
 	social_media TEXT,
 	birthdate TIMESTAMP WITHOUT TIME ZONE,
-	profile_photo TEXT
+	profile_photo TEXT,
+	activity_slot_1 INT,
+	activity_slot_2 INT,
+ 	activity_slot_3 INT,
+ 	activity_slot_4 INT,
+ 	activity_slot_5 INT,
+ 	activity_slot_6 INT,
+ 	activity_slot_7 INT,
+ 	activity_slot_8 INT,
+ 	activity_slot_9 INT,
+ 	activity_slot_10 INT
+	ADD COLUMN activities_joined INTEGER DEFAULT 0;
 );
 
 CREATE TABLE activity(
@@ -25,6 +36,8 @@ CREATE TABLE activity(
 	act_date DATE,
 	location TEXT,
 	act_time TIME WITHOUT TIME ZONE,
+	num_people INT,
+	num_people_joined INT
 );
 
 CREATE TABLE comments (
@@ -44,4 +57,15 @@ CREATE TABLE replies (
     content TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE join_requests (
+  id SERIAL PRIMARY KEY,
+  activity_id INT
+  requester_id INT,
+  status VARCHAR(50) DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (activity_id) REFERENCES activity(id),
+  FOREIGN KEY (requester_id) REFERENCES user_login(id)
+);
+
 
