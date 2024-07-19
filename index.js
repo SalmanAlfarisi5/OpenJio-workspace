@@ -652,6 +652,76 @@ app.get("/api/user-activity-slots/:userId", authenticateToken, async (req, res) 
   }
 });
 
+//Endpoint to fetch user that has joined the activity
+app.get("/api/activity-users/:activityId", authenticateToken, async (req, res) => {
+  const { activityId } = req.params;
+  try {
+    const result = await db.query(`
+      SELECT ul.id, ul.username, up.profile_photo
+      FROM user_login ul
+      JOIN user_profile up ON ul.id = up.user_id
+      WHERE $1 = ANY(array[up.activity_slot_1, up.activity_slot_2, up.activity_slot_3, 
+                           up.activity_slot_4, up.activity_slot_5, up.activity_slot_6, 
+                           up.activity_slot_7, up.activity_slot_8, up.activity_slot_9, 
+                           up.activity_slot_10])`,
+      [activityId]);
+
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+
+// Endpoint to remove a user from an activity
+app.delete("/api/remove-user/:activityId/:userId", authenticateToken, async (req, res) => {
+  const activityId = parseInt(req.params.activityId, 10); // Convert activityId to integer
+  const { userId } = req.params;
+
+  try {
+    await db.query("BEGIN");
+
+    // Decrement the number of people joined
+    await db.query("UPDATE activity SET num_people_joined = num_people_joined - 1 WHERE id = $1", [activityId]);
+
+    // Fetch the user's profile
+    const userProfileResult = await db.query("SELECT * FROM user_profile WHERE user_id = $1", [userId]);
+    const userProfile = userProfileResult.rows[0];
+
+    // Find the activity slot containing the activity ID and set it to NULL
+    const updatedSlots = Object.keys(userProfile)
+      .filter(key => key.startsWith("activity_slot_"))
+      .reduce((acc, key) => {
+        acc[key] = userProfile[key] === activityId ? null : userProfile[key];
+        return acc;
+      }, {});
+
+    // Update the user's activity slots in the database
+    for (const [key, value] of Object.entries(updatedSlots)) {
+      if (value === null) {
+        const query = `UPDATE user_profile SET ${key} = NULL WHERE user_id = $1`;
+        await db.query(query, [userId]);
+      } else {
+        const query = `UPDATE user_profile SET ${key} = $1 WHERE user_id = $2`;
+        await db.query(query, [value, userId]);
+      }
+    }
+
+    await db.query("UPDATE user_profile SET activities_joined = activities_joined - 1 WHERE user_id = $1", [userId]);
+
+    await db.query("COMMIT");
+
+    res.status(200).json({ message: "User removed successfully" });
+  } catch (err) {
+    await db.query("ROLLBACK");
+    console.error("Error removing user:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+
+
 // Serve the React app for all other routes
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/build", "index.html"));

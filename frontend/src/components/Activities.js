@@ -12,6 +12,8 @@ const Activities = () => {
   const [showRequests, setShowRequests] = useState(false);
   const [requests, setRequests] = useState([]);
   const [requestedActivities, setRequestedActivities] = useState([]);
+  const [userLists, setUserLists] = useState({});
+  const [visibleUserLists, setVisibleUserLists] = useState([]);
   const navigate = useNavigate();
   const currentUserId = localStorage.getItem("user_id");
 
@@ -108,6 +110,102 @@ const Activities = () => {
       return null;
     }
   }, [currentUserId]);
+
+  const fetchUsersForActivity = async (activityId) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`/api/activity-users/${activityId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserLists(prevUserLists => ({
+          ...prevUserLists,
+          [activityId]: data,
+        }));
+      } else {
+        const errorText = await response.text();
+        console.error("Error fetching users:", errorText);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  const handleRemoveUser = async (userId, activityId) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`/api/remove-user/${activityId}/${userId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        setUserLists(prevUserLists => ({
+          ...prevUserLists,
+          [activityId]: prevUserLists[activityId].filter(user => user.id !== userId),
+        }));
+        alert("User removed successfully");
+      } else {
+        const errorText = await response.text();
+        console.error("Error removing user:", errorText);
+      }
+    } catch (error) {
+      console.error("Error removing user:", error);
+    }
+  };
+
+  const renderUserList = (activityId) => {
+    const users = userLists[activityId] || [];
+    const numPeople = activities.find(act => act.id === activityId)?.num_people || 0;
+    const userItems = [];
+
+    for (let i = 0; i < numPeople; i++) {
+      const user = users[i];
+      userItems.push(
+        <div key={i} className="user-item">
+          <img
+            src={user ? user.profile_photo || "/Avatar.png" : "/Avatar.png"}
+            alt={user ? user.username : "Empty"}
+            className="user-image"
+            onClick={() => handleProfileClick(user?.id)}
+          />
+          <span>{user ? user.username : "Empty"}</span>
+          {user && (
+            <button className="remove-button" onClick={() => handleRemoveUser(user.id, activityId)}>
+              X
+            </button>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className="user-list-popup" key={activityId}>
+        <h3 className="popup-header">Users Joined</h3>
+        <button className="close-button" onClick={() => handleUserListClose(activityId)}>X</button>
+        <div className="request-list-content">
+          {userItems}
+        </div>
+      </div>
+    );
+  };
+
+  const handleUserListClick = (activityId) => {
+    if (!visibleUserLists.includes(activityId)) {
+      setVisibleUserLists(prev => [...prev, activityId]);
+    }
+    fetchUsersForActivity(activityId);
+  };
+
+  const handleUserListClose = (activityId) => {
+    setVisibleUserLists(prev => prev.filter(id => id !== activityId));
+  };
 
   useEffect(() => {
     const fetchActivitiesAndSlots = async () => {
@@ -470,7 +568,6 @@ const Activities = () => {
                     Reject
                   </button>
                 </div>
-                
               ))
             )}
           </div>
@@ -554,8 +651,15 @@ const Activities = () => {
                 >
                   Edit
                 </button>
+                <button
+                  className="button users-button"
+                  onClick={() => handleUserListClick(activity.id)}
+                >
+                  Users
+                </button>
               </div>
             )}
+            {visibleUserLists.includes(activity.id) && renderUserList(activity.id)}
           </div>
         ))}
       </div>
