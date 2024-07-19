@@ -24,7 +24,7 @@ CREATE TABLE user_profile(
  	activity_slot_8 INT,
  	activity_slot_9 INT,
  	activity_slot_10 INT
-	ADD COLUMN activities_joined INTEGER DEFAULT 0;
+	activities_joined INTEGER DEFAULT 0;
 );
 
 CREATE TABLE activity(

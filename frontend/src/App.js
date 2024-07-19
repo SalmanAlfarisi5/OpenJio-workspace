@@ -13,7 +13,6 @@ import Activities from "./components/Activities";
 import LearnMore from "./components/LearnMore";
 import Profile from "./components/Profile";
 import CreateActivity from "./components/CreateActivity";
-import Host from "./components/Host";
 import Forum from "./components/Forum";
 
 const Home = () => {
@@ -56,7 +55,6 @@ const App = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/:userId" element={<Profile />} />
         <Route path="/createactivity" element={<CreateActivity />} />
-        <Route path="/host" element={<Host />} />
       </Routes>
     </Router>
   );
