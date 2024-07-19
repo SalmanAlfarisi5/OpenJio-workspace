@@ -23,7 +23,8 @@ CREATE TABLE user_profile(
  	activity_slot_7 INT,
  	activity_slot_8 INT,
  	activity_slot_9 INT,
- 	activity_slot_10 INT
+ 	activity_slot_10 INT,
+	activities_joined INT
 );
 
 CREATE TABLE activity(
