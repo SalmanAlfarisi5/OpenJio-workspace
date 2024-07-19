@@ -35,8 +35,8 @@ CREATE TABLE activity(
 	act_date DATE,
 	location TEXT,
 	act_time TIME WITHOUT TIME ZONE,
-	num_people INT;
-	num_people_joined INT;
+	num_people INT,
+	num_people_joined INT
 );
 
 CREATE TABLE comments (
