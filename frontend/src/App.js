@@ -14,6 +14,7 @@ import LearnMore from "./components/LearnMore";
 import Profile from "./components/Profile";
 import CreateActivity from "./components/CreateActivity";
 import Forum from "./components/Forum";
+import Chat from "./components/Chat";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -29,6 +30,9 @@ const Home = () => {
         </button>
         <button className="button" onClick={() => navigate("/forum")}>
           Forum
+        </button>
+        <button className="button" onClick={() => navigate("/chat")}>
+          Chat
         </button>
       </div>
       <div className="hero-content">
@@ -55,6 +59,7 @@ const App = () => {
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/:userId" element={<Profile />} />
         <Route path="/createactivity" element={<CreateActivity />} />
+        <Route path="/chat" element={<Chat />} />
       </Routes>
     </Router>
   );

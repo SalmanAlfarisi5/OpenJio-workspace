@@ -68,4 +68,11 @@ CREATE TABLE join_requests (
   FOREIGN KEY (requester_id) REFERENCES user_login(id)
 );
 
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+    from_user TEXT,
+    to_user TEXT,
+    content TEXT,
+    timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 

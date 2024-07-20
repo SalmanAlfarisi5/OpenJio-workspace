@@ -213,9 +213,14 @@ app.post("/api/login", async (req, res) => {
       return res.status(400).json({ error: "Invalid username or password" });
     }
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    // Include the username in the JWT payload
+    const token = jwt.sign(
+      { userId: user.id, username: user.username },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
 
     res.json({
       message: "Login successful",
@@ -763,6 +768,53 @@ app.delete(
     }
   }
 );
+
+// endpoint to fetch all users excluding the current user
+app.get("/api/users", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    const result = await db.query(
+      "SELECT username, profile_photo FROM user_profile WHERE user_id != $1",
+      [userId]
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// endpoints for sending and fetching messages
+app.post("/api/messages", authenticateToken, async (req, res) => {
+  const { to, content } = req.body;
+  const from = req.user.username; // Ensure this is correctly set from the token
+
+  try {
+    const result = await db.query(
+      "INSERT INTO messages (from_user, to_user, content, timestamp) VALUES ($1, $2, $3, CURRENT_TIMESTAMP) RETURNING *",
+      [from, to, content]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error sending message:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+app.get("/api/messages/:username", authenticateToken, async (req, res) => {
+  const { username } = req.params;
+  const currentUser = req.user.username;
+  try {
+    const result = await db.query(
+      "SELECT * FROM messages WHERE (from_user = $1 AND to_user = $2) OR (from_user = $2 AND to_user = $1) ORDER BY timestamp",
+      [currentUser, username]
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching messages:", err);
+    res.status(500).send("Server error");
+  }
+});
 
 // Serve the React app for all other routes
 app.get("*", (req, res) => {
