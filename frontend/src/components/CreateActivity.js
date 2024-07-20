@@ -11,10 +11,7 @@ const CreateActivity = () => {
     act_date: "",
     act_time: "",
     location: "",
-    num_people: 0,
-=======
     num_people: 1,
->>>>>>> Stashed changes
   });
 
   useEffect(() => {
