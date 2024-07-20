@@ -11,7 +11,8 @@ const CreateActivity = () => {
     act_date: "",
     act_time: "",
     location: "",
-    num_people: 1,
+    num_people: 1, // Default to 1 to prevent 0 or negative values
+
   });
 
   useEffect(() => {
@@ -22,7 +23,8 @@ const CreateActivity = () => {
         act_date: activityToEdit.act_date,
         act_time: activityToEdit.act_time,
         location: activityToEdit.location,
-        num_people: activityToEdit.num_people,
+        num_people:
+          activityToEdit.num_people > 0 ? activityToEdit.num_people : 1,
       });
     }
   }, [activityToEdit]);
@@ -31,7 +33,12 @@ const CreateActivity = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    if (name === "num_people") {
+      const numValue = Math.max(1, parseInt(value, 10) || 1); // Ensure value is at least 1
+      setFormData({ ...formData, [name]: numValue });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
