@@ -769,7 +769,7 @@ app.delete(
   }
 );
 
-// endpoint to fetch all users excluding the current user
+// Endpoint to fetch all users excluding the current user
 app.get("/api/users", authenticateToken, async (req, res) => {
   const userId = req.user.userId;
   try {

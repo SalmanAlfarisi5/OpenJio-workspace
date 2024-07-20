@@ -9,48 +9,51 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const navigate = useNavigate();
+  const currentUser = localStorage.getItem("username"); // Get the current user's username
 
   useEffect(() => {
     // Fetch all users excluding the current user
-    axios
-      .get("/api/users", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-      .then((response) => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get("/api/users", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         setUsers(response.data);
-      })
-      .catch((error) => {
+      } catch (error) {
         if (error.response && error.response.status === 401) {
           navigate("/login");
         }
-      });
+      }
+    };
+    fetchUsers();
   }, [navigate]);
 
   const handleUserClick = (user) => {
     setSelectedUser(user);
     // Fetch messages with the selected user
-    axios
-      .get(`/api/messages/${user.username}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-      .then((response) => {
+    const fetchMessages = async () => {
+      try {
+        const response = await axios.get(`/api/messages/${user.username}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         setMessages(response.data);
-      })
-      .catch((error) => {
+      } catch (error) {
         if (error.response && error.response.status === 401) {
           navigate("/login");
         }
-      });
+      }
+    };
+    fetchMessages();
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (newMessage.trim() !== "") {
-      axios
-        .post(
+      try {
+        const response = await axios.post(
           "/api/messages",
           {
             to: selectedUser.username,
@@ -61,32 +64,32 @@ const Chat = () => {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           }
-        )
-        .then((response) => {
-          setMessages([...messages, response.data]);
-          setNewMessage("");
-        })
-        .catch((error) => {
-          if (error.response && error.response.status === 401) {
-            navigate("/login");
-          }
-        });
+        );
+        setMessages([...messages, response.data]);
+        setNewMessage("");
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          navigate("/login");
+        }
+      }
     }
   };
 
   return (
     <div className="chat-container">
       <div className="user-list">
-        {users.map((user) => (
-          <div key={user.username} onClick={() => handleUserClick(user)}>
-            <img
-              src={user.profile_photo}
-              alt={user.username}
-              className="user-photo"
-            />
-            <span>{user.username}</span>
-          </div>
-        ))}
+        {users
+          .filter((user) => user.username !== currentUser)
+          .map((user) => (
+            <div key={user.username} onClick={() => handleUserClick(user)}>
+              <img
+                src={user.profile_photo || "/Avatar.png"}
+                alt={user.username}
+                className="user-photo"
+              />
+              <span>{user.username}</span>
+            </div>
+          ))}
       </div>
       <div className="chat-window">
         {selectedUser ? (

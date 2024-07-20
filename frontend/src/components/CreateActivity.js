@@ -12,6 +12,7 @@ const CreateActivity = () => {
     act_time: "",
     location: "",
     num_people: 1, // Default to 1 to prevent 0 or negative values
+
   });
 
   useEffect(() => {
