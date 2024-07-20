@@ -70,15 +70,18 @@ const Activities = () => {
   const fetchPendingRequests = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`/api/user-pending-requests/${currentUserId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `/api/user-pending-requests/${currentUserId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
-        setRequestedActivities(data.map(request => request.activity_id));
+        setRequestedActivities(data.map((request) => request.activity_id));
       } else {
         const errorText = await response.text();
         console.error("Error fetching pending requests:", errorText);
@@ -91,11 +94,14 @@ const Activities = () => {
   const fetchUserActivitySlots = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`/api/user-activity-slots/${currentUserId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `/api/user-activity-slots/${currentUserId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -122,7 +128,7 @@ const Activities = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setUserLists(prevUserLists => ({
+        setUserLists((prevUserLists) => ({
           ...prevUserLists,
           [activityId]: data,
         }));
@@ -146,9 +152,11 @@ const Activities = () => {
       });
 
       if (response.ok) {
-        setUserLists(prevUserLists => ({
+        setUserLists((prevUserLists) => ({
           ...prevUserLists,
-          [activityId]: prevUserLists[activityId].filter(user => user.id !== userId),
+          [activityId]: prevUserLists[activityId].filter(
+            (user) => user.id !== userId
+          ),
         }));
         alert("User removed successfully");
       } else {
@@ -162,7 +170,8 @@ const Activities = () => {
 
   const renderUserList = (activityId) => {
     const users = userLists[activityId] || [];
-    const numPeople = activities.find(act => act.id === activityId)?.num_people || 0;
+    const numPeople =
+      activities.find((act) => act.id === activityId)?.num_people || 0;
     const userItems = [];
 
     for (let i = 0; i < numPeople; i++) {
@@ -177,7 +186,10 @@ const Activities = () => {
           />
           <span>{user ? user.username : "Empty"}</span>
           {user && (
-            <button className="remove-button" onClick={() => handleRemoveUser(user.id, activityId)}>
+            <button
+              className="remove-button"
+              onClick={() => handleRemoveUser(user.id, activityId)}
+            >
               X
             </button>
           )}
@@ -188,23 +200,26 @@ const Activities = () => {
     return (
       <div className="user-list-popup" key={activityId}>
         <h3 className="popup-header">Users Joined</h3>
-        <button className="close-button" onClick={() => handleUserListClose(activityId)}>X</button>
-        <div className="request-list-content">
-          {userItems}
-        </div>
+        <button
+          className="close-button"
+          onClick={() => handleUserListClose(activityId)}
+        >
+          X
+        </button>
+        <div className="request-list-content">{userItems}</div>
       </div>
     );
   };
 
   const handleUserListClick = (activityId) => {
     if (!visibleUserLists.includes(activityId)) {
-      setVisibleUserLists(prev => [...prev, activityId]);
+      setVisibleUserLists((prev) => [...prev, activityId]);
     }
     fetchUsersForActivity(activityId);
   };
 
   const handleUserListClose = (activityId) => {
-    setVisibleUserLists(prev => prev.filter(id => id !== activityId));
+    setVisibleUserLists((prev) => prev.filter((id) => id !== activityId));
   };
 
   useEffect(() => {
@@ -226,11 +241,14 @@ const Activities = () => {
           const activitiesData = await activitiesResponse.json();
           const activitiesWithMapUrls = await Promise.all(
             activitiesData.map(async (activity) => {
-              const hostResponse = await fetch(`/api/profile/${activity.user_id_host}`, {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              });
+              const hostResponse = await fetch(
+                `/api/profile/${activity.user_id_host}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
               const hostData = await hostResponse.json();
               return {
                 ...activity,
@@ -244,12 +262,12 @@ const Activities = () => {
           setActivities(activitiesWithMapUrls);
 
           // Match activities with user activity slots
-          const matchedActivities = activitiesWithMapUrls.map(activity => {
+          const matchedActivities = activitiesWithMapUrls.map((activity) => {
             const isJoined = Object.values(slotsResponse).includes(activity.id);
             return {
               ...activity,
               isJoined,
-              isFull: activity.num_people_joined >= activity.num_people
+              isFull: activity.num_people_joined >= activity.num_people,
             };
           });
           setActivities(matchedActivities);
@@ -347,7 +365,7 @@ const Activities = () => {
         return;
       }
 
-      if (userActivities.filter(id => id !== null).length >= 10) {
+      if (userActivities.filter((id) => id !== null).length >= 10) {
         alert("You have joined too many activities!");
         return;
       }
@@ -499,10 +517,7 @@ const Activities = () => {
         onClick={() => handleProfileClick(currentUserId)}
       />
       <div className="top-button">
-        <button
-          className="button button-link"
-          onClick={handleRequestListClick}
-        >
+        <button className="button button-link" onClick={handleRequestListClick}>
           Request List
         </button>
         <button
@@ -554,7 +569,10 @@ const Activities = () => {
                     className="requester-image"
                     onClick={() => handleProfileClick(request.requester_id)}
                   />
-                  <span>{request.username} would like to join your activity, {request.activity_title}!</span>
+                  <span>
+                    {request.username} would like to join your activity,{" "}
+                    {request.activity_title}!
+                  </span>
                   <button
                     className="accept-button"
                     onClick={() => handleAcceptRequest(request.id)}
@@ -579,7 +597,9 @@ const Activities = () => {
             <img
               onClick={() =>
                 handleProfileClick(
-                  activity.user_id_host === currentUserId ? "" : activity.user_id_host
+                  activity.user_id_host === currentUserId
+                    ? ""
+                    : activity.user_id_host
                 )
               }
               src={activity.profile_photo || "/Avatar.png"}
@@ -659,7 +679,8 @@ const Activities = () => {
                 </button>
               </div>
             )}
-            {visibleUserLists.includes(activity.id) && renderUserList(activity.id)}
+            {visibleUserLists.includes(activity.id) &&
+              renderUserList(activity.id)}
           </div>
         ))}
       </div>
