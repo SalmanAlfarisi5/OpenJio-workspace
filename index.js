@@ -387,10 +387,10 @@ app.get(
   }
 );
 
-// Endpoint to fetch all users (usernames only)
+// Endpoint to fetch all users (usernames  and ids)
 app.get("/api/users", async (req, res) => {
   try {
-    const result = await db.query("SELECT username FROM user_login");
+    const result = await db.query("SELECT id, username FROM user_login");
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Error fetching users:", err);
@@ -784,10 +784,10 @@ app.get("/api/users", authenticateToken, async (req, res) => {
   }
 });
 
-// endpoints for sending and fetching messages
+// Endpoint for sending a message
 app.post("/api/messages", authenticateToken, async (req, res) => {
   const { to, content } = req.body;
-  const from = req.user.username; // Ensure this is correctly set from the token
+  const from = req.user.userId;
 
   try {
     const result = await db.query(
@@ -801,13 +801,15 @@ app.post("/api/messages", authenticateToken, async (req, res) => {
   }
 });
 
-app.get("/api/messages/:username", authenticateToken, async (req, res) => {
-  const { username } = req.params;
-  const currentUser = req.user.username;
+// Endpoint for fetching messages
+app.get("/api/messages/:userId", authenticateToken, async (req, res) => {
+  const { userId } = req.params;
+  const currentUser = req.user.userId;
+
   try {
     const result = await db.query(
       "SELECT * FROM messages WHERE (from_user = $1 AND to_user = $2) OR (from_user = $2 AND to_user = $1) ORDER BY timestamp",
-      [currentUser, username]
+      [parseInt(currentUser, 10), parseInt(userId, 10)]
     );
     res.status(200).json(result.rows);
   } catch (err) {
@@ -815,6 +817,43 @@ app.get("/api/messages/:username", authenticateToken, async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
+// Endpoint to fetch users with whom the current user has chat history
+app.get("/api/chat-users", authenticateToken, async (req, res) => {
+  const currentUserId = req.user.userId;
+  const targetUserId = req.query.targetUserId;
+
+  try {
+    let result = await db.query(
+      `SELECT DISTINCT u.id, u.username, up.profile_photo 
+       FROM user_login u 
+       INNER JOIN user_profile up ON u.id = up.user_id 
+       INNER JOIN messages m ON u.id = m.from_user OR u.id = m.to_user 
+       WHERE (m.from_user = $1 OR m.to_user = $1) AND u.id != $1`,
+      [currentUserId]
+    );
+
+    if (targetUserId) {
+      const targetUserResult = await db.query(
+        `SELECT u.id, u.username, up.profile_photo 
+         FROM user_login u 
+         INNER JOIN user_profile up ON u.id = up.user_id 
+         WHERE u.id = $1`,
+        [targetUserId]
+      );
+
+      if (targetUserResult.rows.length > 0 && !result.rows.some(user => user.id === parseInt(targetUserId))) {
+        result.rows.push(targetUserResult.rows[0]);
+      }
+    }
+
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching chat users:", err);
+    res.status(500).send("Server error");
+  }
+});
+
 
 // Serve the React app for all other routes
 app.get("*", (req, res) => {

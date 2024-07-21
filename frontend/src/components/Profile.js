@@ -19,8 +19,8 @@ const Profile = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const navigate = useNavigate();
-  const { userId } = useParams(); // Get userId from URL params
-  const currentUserId = localStorage.getItem("user_id"); // Assuming you store current user id in local storage
+  const { userId } = useParams();
+  const currentUserId = localStorage.getItem("user_id");
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -33,7 +33,7 @@ const Profile = () => {
             headers: { Authorization: `Bearer ${token}` },
           });
           setProfile(response.data);
-          setInitialProfile(response.data); // Store initial profile for cancel operation
+          setInitialProfile(response.data);
           setImagePreview(response.data.profile_photo);
         } catch (error) {
           console.error("Error fetching profile:", error);
@@ -49,7 +49,7 @@ const Profile = () => {
 
   const cancelEditMode = () => {
     setIsEditMode(false);
-    setProfile(initialProfile); // Reset profile to initial values
+    setProfile(initialProfile);
     setImagePreview(initialProfile.profile_photo);
   };
 
@@ -80,7 +80,6 @@ const Profile = () => {
         setProfile({ ...profile, profile_photo: response.data.profile_photo });
         setMessage(response.data.message);
 
-        // Clear the message after 5 seconds
         setTimeout(() => {
           setMessage("");
         }, 5000);
@@ -98,9 +97,8 @@ const Profile = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMessage(response.data.message);
-      setIsEditMode(false); // Exit edit mode after successful update
+      setIsEditMode(false);
 
-      // Clear the message after 5 seconds
       setTimeout(() => {
         setMessage("");
       }, 5000);
@@ -117,9 +115,13 @@ const Profile = () => {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based in JS
+    const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
+  };
+
+  const handleChatClick = () => {
+    navigate("/chat", { state: { targetUserId: userId } });
   };
 
   return (
@@ -233,6 +235,9 @@ const Profile = () => {
         <button className="logout-button" onClick={handleLogout}>
           Logout
         </button>
+      )}
+      {userId && userId !== currentUserId && (
+        <button onClick={handleChatClick} className="chat-button">Chat</button>
       )}
     </div>
   );
