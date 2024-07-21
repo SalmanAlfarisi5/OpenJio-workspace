@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import "./Profile.css";
+import "../Style.css";
 
 const Profile = () => {
   const [profile, setProfile] = useState({
@@ -29,9 +29,12 @@ const Profile = () => {
     } else {
       const fetchProfile = async () => {
         try {
-          const response = await axios.get(`/api/profile${userId ? `/${userId}` : ''}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          const response = await axios.get(
+            `/api/profile${userId ? `/${userId}` : ""}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           setProfile(response.data);
           setInitialProfile(response.data);
           setImagePreview(response.data.profile_photo);
@@ -114,8 +117,8 @@ const Profile = () => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
     return `${day}-${month}-${year}`;
   };
@@ -237,7 +240,9 @@ const Profile = () => {
         </button>
       )}
       {userId && userId !== currentUserId && (
-        <button onClick={handleChatClick} className="chat-button">Chat</button>
+        <button onClick={handleChatClick} className="chat-button">
+          Chat
+        </button>
       )}
     </div>
   );

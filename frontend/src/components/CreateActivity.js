@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./CreateActivity.css";
+import "../Style.css";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const CreateActivity = () => {
@@ -11,8 +11,7 @@ const CreateActivity = () => {
     act_date: "",
     act_time: "",
     location: "",
-    num_people: 1, // Default to 1 to prevent 0 or negative values
-
+    num_people: 1,
   });
 
   useEffect(() => {

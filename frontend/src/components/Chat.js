@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import "./Chat.css";
+import "../Style.css";
 
 const Chat = () => {
-  const [users, setUsers] = useState([]); 
+  const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -22,8 +22,8 @@ const Chat = () => {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           params: {
-            targetUserId
-          }
+            targetUserId,
+          },
         });
 
         if (Array.isArray(response.data)) {
@@ -43,30 +43,35 @@ const Chat = () => {
     fetchUsers();
   }, [navigate, location.state]);
 
-  const handleUserClick = useCallback((user) => {
-    setSelectedUser(user);
-    // Fetch messages with the selected user
-    const fetchMessages = async () => {
-      try {
-        const response = await axios.get(`/api/messages/${user.id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setMessages(response.data);
-      } catch (error) {
-        if (error.response && error.response.status === 401) {
-          navigate("/login");
+  const handleUserClick = useCallback(
+    (user) => {
+      setSelectedUser(user);
+      // Fetch messages with the selected user
+      const fetchMessages = async () => {
+        try {
+          const response = await axios.get(`/api/messages/${user.id}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          });
+          setMessages(response.data);
+        } catch (error) {
+          if (error.response && error.response.status === 401) {
+            navigate("/login");
+          }
         }
-      }
-    };
-    fetchMessages();
-  }, [navigate]);
+      };
+      fetchMessages();
+    },
+    [navigate]
+  );
 
   useEffect(() => {
     const targetUserId = location.state?.targetUserId;
     if (targetUserId && users.length > 0) {
-      const targetUser = users.find(user => user.id === parseInt(targetUserId));
+      const targetUser = users.find(
+        (user) => user.id === parseInt(targetUserId)
+      );
       if (targetUser) {
         handleUserClick(targetUser);
       }
@@ -120,6 +125,9 @@ const Chat = () => {
               <span>{user.username}</span>
             </div>
           ))}
+        <button className="return-button" onClick={() => navigate("/home")}>
+          return
+        </button>
       </div>
       <div className="chat-window">
         {selectedUser ? (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import "./Activities.css";
+import "../Style.css";
 import { useNavigate } from "react-router-dom";
 import emailjs from "emailjs-com";
 
@@ -684,6 +684,9 @@ const Activities = () => {
           </div>
         ))}
       </div>
+      <button className="return-button" onClick={() => navigate("/home")}>
+        Return
+      </button>
     </div>
   );
 };
