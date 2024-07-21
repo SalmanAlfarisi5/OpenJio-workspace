@@ -478,10 +478,6 @@
     color: #888;
 }
 
-body {
-    background-color: #1f1f2e
-}
-
 .create-activity {
     max-width: 600px;
     margin: 50px auto;
@@ -707,16 +703,18 @@ p {
     display: flex;
     justify-content: center;
     align-items: center;
+    background-size: cover;
+    background-position: center;
 }
 
 .form-container {
-    max-width: 400px;
-    padding: 20px;
-    background-color: #1e2139;
-    border: 1px solid #252945;
+    min-width: 400px;
+    padding: 30px;
+    background-color: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     margin: 0 auto;
+    backdrop-filter: blur(10px);
 
 }
 
@@ -724,6 +722,7 @@ p {
     font-size: 28px;
     color: white;
     text-align: center;
+    margin-bottom: 20px;
 }
 
 .input-container {
@@ -733,25 +732,26 @@ p {
 .input-container input {
     width: 100%;
     padding: 10px;
-    background-color: #252945;
+    background-color: rgba(255, 255, 255, 0.1);
     color: #fff;
-    border: 1px solid #373b53;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 4px;
 }
 
 .submit-button {
     width: 100%;
     padding: 10px;
-    background-color: #7c5dfa;
+    background-color: rgba(124, 93, 250, 0.8);
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     font-size: 16px;
+    transition: background-color 0.3s ease;
 }
 
 .submit-button:hover {
-    background-color: #6a48d6;
+    background-color: rgba(106, 72, 214, 0.8);
 }
 
 .link-container {
@@ -765,5 +765,22 @@ p {
 }
 
 .link-container a:hover {
+    text-decoration: underline;
+}
+
+.remember-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    color: white;
+}
+
+.forgot-password {
+    color: #7c5dfa;
+    text-decoration: none;
+}
+
+.forgot-password:hover {
     text-decoration: underline;
 }

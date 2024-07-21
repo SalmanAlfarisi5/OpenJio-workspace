@@ -29,7 +29,6 @@ const Login = () => {
       setSuccess("Login successful!");
       setError("");
 
-      // Ensure these keys match what your backend sends
       const { token, username, email, id } = response.data;
       localStorage.setItem("token", token);
       localStorage.setItem("username", username);
@@ -37,7 +36,6 @@ const Login = () => {
       localStorage.setItem("user_id", id);
       console.log(localStorage.getItem("user_id"));
 
-      // Debugging - log values to verify they are correctly stored
       console.log("Stored user_id:", localStorage.getItem("user_id"));
       console.log("Stored token:", localStorage.getItem("token"));
 
@@ -56,6 +54,10 @@ const Login = () => {
 
   return (
     <div className="login">
+      <video autoPlay muted loop className="background-video">
+        <source src="../login_background.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
       <div className="form-container">
         <div className="form-text">Login</div>
         <br></br>
@@ -84,6 +86,13 @@ const Login = () => {
               onChange={handleChange}
               required
             />
+          </div>
+          <div className="remember-container">
+            <input type="checkbox" id="remember" name="remember" />
+            <label htmlFor="remember">Remember me</label>
+            <a href="/forgot-password" className="forgot-password">
+              Forgot Password?
+            </a>
           </div>
           <button type="submit" className="submit-button">
             Login

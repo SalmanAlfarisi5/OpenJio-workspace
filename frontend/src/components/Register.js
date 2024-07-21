@@ -32,6 +32,10 @@ const Register = () => {
 
   return (
     <div className="register">
+      <video autoPlay muted className="background-video">
+        <source src="../login_background.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
       <div className="form-container">
         <div className="form-text">Register</div>
         <br></br>
