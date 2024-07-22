@@ -488,67 +488,6 @@
     color: #888;
 }
 
-.create-activity-page {
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-size: cover;
-    background-position: center;
-}
-
-.create-activity {
-    min-width: 500px;
-    padding: 30px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    margin: 0 auto;
-    backdrop-filter: blur(10px);
-}
-
-.create-activity h1 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #fff;
-}
-
-.create-activity form {
-    display: flex;
-    flex-direction: column;
-}
-
-.create-activity input,
-.create-activity textarea {
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 5px;
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #fff;
-}
-
-.create-activity input::placeholder,
-.create-activity textarea::placeholder {
-    color: #bbb;
-}
-
-.create-activity button {
-    width: 100%;
-    padding: 10px;
-    background-color: rgba(124, 93, 250, 0.8);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
-}
-
-.create-activity button:hover {
-    background-color: #e67e22;
-}
-
 .comments-section {
     margin-top: 20px;
 }
@@ -724,7 +663,8 @@ p {
 
 
 .login,
-.register {
+.register,
+.create-activity-page {
     height: 100vh;
     display: flex;
     justify-content: center;
@@ -733,8 +673,10 @@ p {
     background-position: center;
 }
 
-.form-container {
+.form-container,
+.create-activity {
     min-width: 400px;
+    max-width: 500px;
     padding: 30px;
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
@@ -743,18 +685,22 @@ p {
     backdrop-filter: blur(10px);
 }
 
-.form-text {
+.form-text,
+.create-activity h1 {
     font-size: 28px;
     color: white;
     text-align: center;
     margin-bottom: 20px;
 }
 
-.input-container {
+.input-container,
+.create-activity form {
     margin-bottom: 15px;
 }
 
-.input-container input {
+.input-container input,
+.create-activity input,
+.create-activity textarea {
     width: 100%;
     padding: 10px;
     background-color: rgba(255, 255, 255, 0.1);
@@ -763,7 +709,14 @@ p {
     border-radius: 4px;
 }
 
-.submit-button {
+.input-container input::placeholder,
+.create-activity input::placeholder,
+.create-activity textarea::placeholder {
+    color: #bbb;
+}
+
+.submit-button,
+.create-activity button {
     width: 100%;
     padding: 10px;
     background-color: rgba(124, 93, 250, 0.8);
@@ -775,7 +728,8 @@ p {
     transition: background-color 0.3s ease;
 }
 
-.submit-button:hover {
+.submit-button:hover,
+.create-activity button:hover {
     background-color: rgba(106, 72, 214, 0.8);
 }
 

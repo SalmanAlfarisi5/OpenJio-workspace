@@ -509,184 +509,189 @@ const Activities = () => {
   });
 
   return (
-    <div className="activities-container">
-      <img
-        src={profilePhoto}
-        alt="Profile"
-        className="Profile"
-        onClick={() => handleProfileClick(currentUserId)}
-      />
-      <div className="top-button">
-        <button className="button button-link" onClick={handleRequestListClick}>
-          Request List
-        </button>
-        <button
-          className="button button-link"
-          onClick={handleMyActivitiesClick}
-        >
-          {showMyActivities ? "All Activities" : "My Activities"}
-        </button>
-        <button
-          className="button button-link"
-          onClick={handleCreateActivityClick}
-        >
-          Create an Activity
-        </button>
-      </div>
-      <div className="search-sort-container">
-        <div className="search-bar">
-          <input
-            type="text"
-            placeholder="Search by title..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-          />
-        </div>
-        <div className="sort-order">
-          <label htmlFor="sortOrder">Sort by date: </label>
-          <select
-            id="sortOrder"
-            value={sortOrder}
-            onChange={handleSortOrderChange}
+    <div className="activities">
+      <div className="activities-container">
+        <img
+          src={profilePhoto}
+          alt="Profile"
+          className="Profile"
+          onClick={() => handleProfileClick(currentUserId)}
+        />
+        <div className="top-button">
+          <button
+            className="button button-link"
+            onClick={handleRequestListClick}
           >
-            <option value="asc">Earliest to Latest</option>
-            <option value="desc">Latest to Earliest</option>
-          </select>
+            Request List
+          </button>
+          <button
+            className="button button-link"
+            onClick={handleMyActivitiesClick}
+          >
+            {showMyActivities ? "All Activities" : "My Activities"}
+          </button>
+          <button
+            className="button button-link"
+            onClick={handleCreateActivityClick}
+          >
+            Create an Activity
+          </button>
         </div>
-      </div>
-      {showRequests && (
-        <div className="request-list">
-          <h3>Requests</h3>
-          <div className="request-list-content">
-            {requests.length === 0 ? (
-              <p className="no-requests">No requests at the moment</p>
-            ) : (
-              requests.map((request) => (
-                <div key={request.id} className="request-item">
-                  <img
-                    src={request.profile_photo || "/Avatar.png"}
-                    alt={request.username}
-                    className="requester-image"
-                    onClick={() => handleProfileClick(request.requester_id)}
-                  />
-                  <span>
-                    {request.username} would like to join your activity,{" "}
-                    {request.activity_title}!
-                  </span>
-                  <button
-                    className="accept-button"
-                    onClick={() => handleAcceptRequest(request.id)}
+        <div className="search-sort-container">
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Search by title..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </div>
+          <div className="sort-order">
+            <label htmlFor="sortOrder">Sort by date: </label>
+            <select
+              id="sortOrder"
+              value={sortOrder}
+              onChange={handleSortOrderChange}
+            >
+              <option value="asc">Earliest to Latest</option>
+              <option value="desc">Latest to Earliest</option>
+            </select>
+          </div>
+        </div>
+        {showRequests && (
+          <div className="request-list">
+            <h3>Requests</h3>
+            <div className="request-list-content">
+              {requests.length === 0 ? (
+                <p className="no-requests">No requests at the moment</p>
+              ) : (
+                requests.map((request) => (
+                  <div key={request.id} className="request-item">
+                    <img
+                      src={request.profile_photo || "/Avatar.png"}
+                      alt={request.username}
+                      className="requester-image"
+                      onClick={() => handleProfileClick(request.requester_id)}
+                    />
+                    <span>
+                      {request.username} would like to join your activity,{" "}
+                      {request.activity_title}!
+                    </span>
+                    <button
+                      className="accept-button"
+                      onClick={() => handleAcceptRequest(request.id)}
+                    >
+                      Accept
+                    </button>
+                    <button
+                      className="reject-button"
+                      onClick={() => handleRejectRequest(request.id)}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+        <div className="activities-list">
+          {sortedActivities.map((activity) => (
+            <div key={activity.id} className="activity-block">
+              <img
+                onClick={() =>
+                  handleProfileClick(
+                    activity.user_id_host === currentUserId
+                      ? ""
+                      : activity.user_id_host
+                  )
+                }
+                src={activity.profile_photo || "/Avatar.png"}
+                alt={activity.title}
+                className="activity-image"
+              />
+              <h3 className="activity-title">{activity.title}</h3>
+              <p className="activity-description">{activity.act_desc}</p>
+              <p className="activity-date-time">
+                <span>Date: {formatDate(activity.act_date)}</span>
+                <br />
+                <span>Time: {activity.act_time}</span>
+                <br />
+                <span>
+                  Location:{" "}
+                  <a
+                    href={activity.mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="maps-link"
                   >
-                    Accept
+                    {activity.location}
+                  </a>
+                </span>
+                <br />
+                <span>
+                  People: {activity.num_people_joined} / {activity.num_people}
+                </span>
+              </p>
+              {!showMyActivities && (
+                <>
+                  {String(activity.user_id_host) === currentUserId ? (
+                    <button className="button joined-button" disabled>
+                      Joined
+                    </button>
+                  ) : activity.isJoined ? (
+                    <button className="button joined-button" disabled>
+                      Joined
+                    </button>
+                  ) : activity.isFull ? (
+                    <button className="button full-button" disabled>
+                      Full
+                    </button>
+                  ) : requestedActivities.includes(activity.id) ? (
+                    <button className="button requested-button" disabled>
+                      Requested
+                    </button>
+                  ) : (
+                    <button
+                      className="button join-button"
+                      onClick={() => handleJoinClick(activity)}
+                    >
+                      Join
+                    </button>
+                  )}
+                </>
+              )}
+              {showMyActivities && (
+                <div className="button-container">
+                  <button
+                    className="button delete-button"
+                    onClick={() => handleDeleteClick(activity.id)}
+                  >
+                    Delete
                   </button>
                   <button
-                    className="reject-button"
-                    onClick={() => handleRejectRequest(request.id)}
+                    className="button edit-button"
+                    onClick={() => handleEditClick(activity)}
                   >
-                    Reject
+                    Edit
+                  </button>
+                  <button
+                    className="button users-button"
+                    onClick={() => handleUserListClick(activity.id)}
+                  >
+                    Users
                   </button>
                 </div>
-              ))
-            )}
-          </div>
+              )}
+              {visibleUserLists.includes(activity.id) &&
+                renderUserList(activity.id)}
+            </div>
+          ))}
         </div>
-      )}
-      <div className="activities-list">
-        {sortedActivities.map((activity) => (
-          <div key={activity.id} className="activity-block">
-            <img
-              onClick={() =>
-                handleProfileClick(
-                  activity.user_id_host === currentUserId
-                    ? ""
-                    : activity.user_id_host
-                )
-              }
-              src={activity.profile_photo || "/Avatar.png"}
-              alt={activity.title}
-              className="activity-image"
-            />
-            <h3 className="activity-title">{activity.title}</h3>
-            <p className="activity-description">{activity.act_desc}</p>
-            <p className="activity-date-time">
-              <span>Date: {formatDate(activity.act_date)}</span>
-              <br />
-              <span>Time: {activity.act_time}</span>
-              <br />
-              <span>
-                Location:{" "}
-                <a
-                  href={activity.mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="maps-link"
-                >
-                  {activity.location}
-                </a>
-              </span>
-              <br />
-              <span>
-                People: {activity.num_people_joined} / {activity.num_people}
-              </span>
-            </p>
-            {!showMyActivities && (
-              <>
-                {String(activity.user_id_host) === currentUserId ? (
-                  <button className="button joined-button" disabled>
-                    Joined
-                  </button>
-                ) : activity.isJoined ? (
-                  <button className="button joined-button" disabled>
-                    Joined
-                  </button>
-                ) : activity.isFull ? (
-                  <button className="button full-button" disabled>
-                    Full
-                  </button>
-                ) : requestedActivities.includes(activity.id) ? (
-                  <button className="button requested-button" disabled>
-                    Requested
-                  </button>
-                ) : (
-                  <button
-                    className="button join-button"
-                    onClick={() => handleJoinClick(activity)}
-                  >
-                    Join
-                  </button>
-                )}
-              </>
-            )}
-            {showMyActivities && (
-              <div className="button-container">
-                <button
-                  className="button delete-button"
-                  onClick={() => handleDeleteClick(activity.id)}
-                >
-                  Delete
-                </button>
-                <button
-                  className="button edit-button"
-                  onClick={() => handleEditClick(activity)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="button users-button"
-                  onClick={() => handleUserListClick(activity.id)}
-                >
-                  Users
-                </button>
-              </div>
-            )}
-            {visibleUserLists.includes(activity.id) &&
-              renderUserList(activity.id)}
-          </div>
-        ))}
+        <button className="return-button" onClick={() => navigate("/home")}>
+          Return
+        </button>
       </div>
-      <button className="return-button" onClick={() => navigate("/home")}>
-        Return
-      </button>
     </div>
   );
 };
