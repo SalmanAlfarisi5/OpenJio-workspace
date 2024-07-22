@@ -85,59 +85,65 @@ const CreateActivity = () => {
   };
 
   return (
-    <div className="create-activity">
-      <h1>{activityToEdit ? "Edit Activity" : "Create Activity"}</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="title"
-          placeholder="Title"
-          value={formData.title}
-          onChange={handleChange}
-          required
-        />
-        <textarea
-          name="act_desc"
-          placeholder="Description"
-          value={formData.act_desc}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="date"
-          name="act_date"
-          value={formData.act_date}
-          min={getCurrentDate()}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="time"
-          name="act_time"
-          value={formData.act_time}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          name="location"
-          placeholder="Location"
-          value={formData.location}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="number"
-          name="num_people"
-          placeholder="Number of People"
-          value={formData.num_people}
-          onChange={handleChange}
-          required
-        />
-        <button type="submit">
-          {activityToEdit ? "Update Activity" : "Create Activity"}
-        </button>
-      </form>
+    <div className="create-activity-page">
+      <video autoPlay muted loop className="background-video">
+        <source src="../activity_background.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+      <div className="create-activity">
+        <h1>{activityToEdit ? "Edit Activity" : "Create Activity"}</h1>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            name="title"
+            placeholder="Title"
+            value={formData.title}
+            onChange={handleChange}
+            required
+          />
+          <textarea
+            name="act_desc"
+            placeholder="Description"
+            value={formData.act_desc}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="date"
+            name="act_date"
+            value={formData.act_date}
+            min={getCurrentDate()}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="time"
+            name="act_time"
+            value={formData.act_time}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="text"
+            name="location"
+            placeholder="Location"
+            value={formData.location}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="number"
+            name="num_people"
+            placeholder="Number of People"
+            value={formData.num_people}
+            onChange={handleChange}
+            required
+          />
+          <button type="submit">
+            {activityToEdit ? "Update Activity" : "Create Activity"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
