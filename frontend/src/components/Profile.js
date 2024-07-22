@@ -129,10 +129,6 @@ const Profile = () => {
 
   return (
     <div className="profile-page">
-      <video autoPlay muted loop className="moving-video">
-        <source src="../profile_background.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
       <div className="profile-container">
         <h1>Profile Page</h1>
         <form onSubmit={handleSubmit}>

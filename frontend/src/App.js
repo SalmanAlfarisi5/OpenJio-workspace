@@ -20,7 +20,7 @@ const Home = () => {
   return (
     <div className="App">
       <video autoPlay loop muted className="background-video">
-        <source src="/background.webm" type="video/webm" />
+        <source src="/home_background.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
       <div className="header">

@@ -86,10 +86,6 @@ const CreateActivity = () => {
 
   return (
     <div className="create-activity-page">
-      <video autoPlay muted loop className="background-video">
-        <source src="../activity_background.mp4" type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
       <div className="create-activity">
         <h1>{activityToEdit ? "Edit Activity" : "Create Activity"}</h1>
         <form onSubmit={handleSubmit}>
