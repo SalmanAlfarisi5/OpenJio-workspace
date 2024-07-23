@@ -15,6 +15,8 @@ import Profile from "./components/Profile";
 import CreateActivity from "./components/CreateActivity";
 import Forum from "./components/Forum";
 import Chat from "./components/Chat";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword"; 
 
 const Home = () => {
   const navigate = useNavigate();
@@ -60,6 +62,8 @@ const App = () => {
         <Route path="/profile/:userId" element={<Profile />} />
         <Route path="/createactivity" element={<CreateActivity />} />
         <Route path="/chat" element={<Chat />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} /> 
       </Routes>
     </Router>
   );
