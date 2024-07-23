@@ -841,13 +841,14 @@ app.get("/api/chat-users", authenticateToken, async (req, res) => {
          WHERE u.id = $1`,
         [targetUserId]
       );
-      if (
-        targetUserResult.rows.length > 0 &&
-        !result.rows.some((user) => user.id === parseInt(targetUserId))
-      ) {
+
+
+      if (targetUserResult.rows.length > 0 && !result.rows.some(user => user.id === parseInt(targetUserId))) {
         result.rows.push(targetUserResult.rows[0]);
       }
     }
+
+
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Error fetching chat users:", err);
