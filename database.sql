@@ -76,12 +76,9 @@ CREATE TABLE messages (
     timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-<<<<<<< Updated upstream
-=======
 CREATE TABLE password_resets (
   id SERIAL PRIMARY KEY,
   user_id INT REFERENCES user_login(id) ON DELETE CASCADE,
   token TEXT NOT NULL,
   expires_at TIMESTAMP NOT NULL
 );
->>>>>>> Stashed changes
