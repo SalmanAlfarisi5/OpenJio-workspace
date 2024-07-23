@@ -845,12 +845,10 @@ app.get("/api/chat-users", authenticateToken, async (req, res) => {
         [targetUserId]
       );
 
-if (
-  targetUserResult.rows.length > 0 &&
-  !result.rows.some((user) => user.id === parseInt(targetUserId))
-) {
-  result.rows.push(targetUserResult.rows[0]);
-}
+      if (targetUserResult.rows.length > 0 && !result.rows.some(user => user.id === parseInt(targetUserId))) {
+        result.rows.push(targetUserResult.rows[0]);
+      }
+    }
 
     res.status(200).json(result.rows);
   } catch (err) {
