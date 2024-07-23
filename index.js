@@ -400,7 +400,6 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-
 // Endpoint to update an activity
 app.put("/api/activities/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
@@ -825,7 +824,6 @@ app.get("/api/messages/:userId", authenticateToken, async (req, res) => {
 app.get("/api/chat-users", authenticateToken, async (req, res) => {
   const currentUserId = req.user.userId;
   const targetUserId = req.query.targetUserId;
-
   try {
     let result = await db.query(
       `SELECT DISTINCT u.id, u.username, up.profile_photo 
@@ -835,7 +833,6 @@ app.get("/api/chat-users", authenticateToken, async (req, res) => {
        WHERE (m.from_user = $1 OR m.to_user = $1) AND u.id != $1`,
       [currentUserId]
     );
-
     if (targetUserId) {
       const targetUserResult = await db.query(
         `SELECT u.id, u.username, up.profile_photo 
@@ -844,14 +841,13 @@ app.get("/api/chat-users", authenticateToken, async (req, res) => {
          WHERE u.id = $1`,
         [targetUserId]
       );
-
-if (
-  targetUserResult.rows.length > 0 &&
-  !result.rows.some((user) => user.id === parseInt(targetUserId))
-) {
-  result.rows.push(targetUserResult.rows[0]);
-}
-
+      if (
+        targetUserResult.rows.length > 0 &&
+        !result.rows.some((user) => user.id === parseInt(targetUserId))
+      ) {
+        result.rows.push(targetUserResult.rows[0]);
+      }
+    }
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Error fetching chat users:", err);
@@ -955,7 +951,6 @@ app.post("/api/reset-password", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
 
 // Serve the React app for all other routes
 app.get("*", (req, res) => {
