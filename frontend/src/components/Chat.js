@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import "./Chat.css";
+import "../Style.css";
 
 const Chat = () => {
   const [users, setUsers] = useState([]);
@@ -9,54 +9,83 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const navigate = useNavigate();
-  const currentUser = localStorage.getItem("username"); // Get the current user's username
+  const location = useLocation();
+  const currentUser = parseInt(localStorage.getItem("user_id"), 10);
 
   useEffect(() => {
-    // Fetch all users excluding the current user
     const fetchUsers = async () => {
+      const targetUserId = location.state?.targetUserId;
+
       try {
-        const response = await axios.get("/api/users", {
+        const response = await axios.get("/api/chat-users", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
+          params: {
+            targetUserId,
+          },
         });
-        setUsers(response.data);
+
+        if (Array.isArray(response.data)) {
+          setUsers(response.data);
+        } else {
+          console.error("Unexpected response data:", response.data);
+          setUsers([]);
+        }
       } catch (error) {
         if (error.response && error.response.status === 401) {
           navigate("/login");
+        } else {
+          console.error("Error fetching users:", error);
         }
       }
     };
     fetchUsers();
-  }, [navigate]);
+  }, [navigate, location.state]);
 
-  const handleUserClick = (user) => {
-    setSelectedUser(user);
-    // Fetch messages with the selected user
-    const fetchMessages = async () => {
-      try {
-        const response = await axios.get(`/api/messages/${user.username}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setMessages(response.data);
-      } catch (error) {
-        if (error.response && error.response.status === 401) {
-          navigate("/login");
+  const handleUserClick = useCallback(
+    (user) => {
+      setSelectedUser(user);
+      // Fetch messages with the selected user
+      const fetchMessages = async () => {
+        try {
+          const response = await axios.get(`/api/messages/${user.id}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          });
+          setMessages(response.data);
+        } catch (error) {
+          if (error.response && error.response.status === 401) {
+            navigate("/login");
+          }
         }
-      }
-    };
-    fetchMessages();
-  };
+      };
+      fetchMessages();
+    },
+    [navigate]
+  );
 
-  const handleSendMessage = async () => {
+  useEffect(() => {
+    const targetUserId = location.state?.targetUserId;
+    if (targetUserId && users.length > 0) {
+      const targetUser = users.find(
+        (user) => user.id === parseInt(targetUserId)
+      );
+      if (targetUser) {
+        handleUserClick(targetUser);
+      }
+    }
+  }, [location.state, users, handleUserClick]);
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
     if (newMessage.trim() !== "") {
       try {
         const response = await axios.post(
           "/api/messages",
           {
-            to: selectedUser.username,
+            to: selectedUser.id,
             content: newMessage,
           },
           {
@@ -75,13 +104,19 @@ const Chat = () => {
     }
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleSendMessage(e);
+    }
+  };
+
   return (
     <div className="chat-container">
       <div className="user-list">
         {users
-          .filter((user) => user.username !== currentUser)
+          .filter((user) => user.id !== currentUser)
           .map((user) => (
-            <div key={user.username} onClick={() => handleUserClick(user)}>
+            <div key={user.id} onClick={() => handleUserClick(user)}>
               <img
                 src={user.profile_photo || "/Avatar.png"}
                 alt={user.username}
@@ -90,6 +125,9 @@ const Chat = () => {
               <span>{user.username}</span>
             </div>
           ))}
+        <button className="return-button" onClick={() => navigate("/home")}>
+          return
+        </button>
       </div>
       <div className="chat-window">
         {selectedUser ? (
@@ -99,9 +137,7 @@ const Chat = () => {
                 <div
                   key={message.id}
                   className={`message ${
-                    message.from_user === selectedUser.username
-                      ? "received"
-                      : "sent"
+                    message.from_user === currentUser ? "sent" : "received"
                   }`}
                 >
                   <span>{message.content}</span>
@@ -111,15 +147,16 @@ const Chat = () => {
                 </div>
               ))}
             </div>
-            <div className="message-input">
+            <form className="message-input" onSubmit={handleSendMessage}>
               <input
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
                 placeholder="Type a message..."
               />
-              <button onClick={handleSendMessage}>Send</button>
-            </div>
+              <button type="submit">Send</button>
+            </form>
           </>
         ) : (
           <div className="select-user">Select a user to chat with</div>
