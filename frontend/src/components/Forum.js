@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./Forum.css"; // Add your styles here
+import "../Style.css";
 
 const Forum = () => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [replyContent, setReplyContent] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchComments();
@@ -109,6 +111,9 @@ const Forum = () => {
           </div>
         ))}
       </div>
+      <button className="return-button" onClick={() => navigate("/home")}>
+        return
+      </button>
     </div>
   );
 };

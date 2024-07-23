@@ -23,8 +23,8 @@ CREATE TABLE user_profile(
  	activity_slot_7 INT,
  	activity_slot_8 INT,
  	activity_slot_9 INT,
- 	activity_slot_10 INT
-	activities_joined INTEGER DEFAULT 0;
+ 	activity_slot_10 INT,
+	activities_joined INT DEFAULT 0
 );
 
 CREATE TABLE activity(
@@ -37,7 +37,7 @@ CREATE TABLE activity(
 	location TEXT,
 	act_time TIME WITHOUT TIME ZONE,
 	num_people INT,
-	num_people_joined INT
+	num_people_joined INT DEFAULT 0;
 );
 
 CREATE TABLE comments (
@@ -60,7 +60,7 @@ CREATE TABLE replies (
 
 CREATE TABLE join_requests (
   id SERIAL PRIMARY KEY,
-  activity_id INT
+  activity_id INT,
   requester_id INT,
   status VARCHAR(50) DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -69,11 +69,11 @@ CREATE TABLE join_requests (
 );
 
 CREATE TABLE messages (
-    id SERIAL PRIMARY KEY,
-    from_user TEXT,
-    to_user TEXT,
-    content TEXT,
-    timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	id SERIAL PRIMARY KEY,
+	from_user INT,
+	to_user INT,
+	content TEXT,
+	timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE password_resets (

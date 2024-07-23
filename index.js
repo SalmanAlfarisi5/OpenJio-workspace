@@ -392,13 +392,14 @@ app.get(
 // Endpoint to fetch all users (usernames and ids)
 app.get("/api/users", async (req, res) => {
   try {
-    const result = await db.query("SELECT username FROM user_login");
+    const result = await db.query("SELECT id, username FROM user_login");
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Error fetching users:", err);
     res.status(500).send("Server error");
   }
 });
+
 
 // Endpoint to update an activity
 app.put("/api/activities/:id", authenticateToken, async (req, res) => {
@@ -786,10 +787,10 @@ app.get("/api/users", authenticateToken, async (req, res) => {
   }
 });
 
-// endpoints for sending and fetching messages
+// Endpoint for sending a message
 app.post("/api/messages", authenticateToken, async (req, res) => {
   const { to, content } = req.body;
-  const from = req.user.username; // Ensure this is correctly set from the token
+  const from = req.user.userId;
 
   try {
     const result = await db.query(
@@ -803,13 +804,15 @@ app.post("/api/messages", authenticateToken, async (req, res) => {
   }
 });
 
-app.get("/api/messages/:username", authenticateToken, async (req, res) => {
-  const { username } = req.params;
-  const currentUser = req.user.username;
+// Endpoint for fetching messages
+app.get("/api/messages/:userId", authenticateToken, async (req, res) => {
+  const { userId } = req.params;
+  const currentUser = req.user.userId;
+
   try {
     const result = await db.query(
       "SELECT * FROM messages WHERE (from_user = $1 AND to_user = $2) OR (from_user = $2 AND to_user = $1) ORDER BY timestamp",
-      [currentUser, username]
+      [parseInt(currentUser, 10), parseInt(userId, 10)]
     );
     res.status(200).json(result.rows);
   } catch (err) {
@@ -842,13 +845,12 @@ app.get("/api/chat-users", authenticateToken, async (req, res) => {
         [targetUserId]
       );
 
-      if (
-        targetUserResult.rows.length > 0 &&
-        !result.rows.some((user) => user.id === parseInt(targetUserId))
-      ) {
-        result.rows.push(targetUserResult.rows[0]);
-      }
-    }
+if (
+  targetUserResult.rows.length > 0 &&
+  !result.rows.some((user) => user.id === parseInt(targetUserId))
+) {
+  result.rows.push(targetUserResult.rows[0]);
+}
 
     res.status(200).json(result.rows);
   } catch (err) {
