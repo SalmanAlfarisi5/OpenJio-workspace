@@ -37,7 +37,8 @@ CREATE TABLE activity(
 	location TEXT,
 	act_time TIME WITHOUT TIME ZONE,
 	num_people INT,
-	num_people_joined INT
+	num_people_joined INT DEFAULT 0,
+	act_status VARCHAR(50) DEFAULT 'ongoing'
 );
 
 CREATE TABLE comments (
@@ -68,4 +69,17 @@ CREATE TABLE join_requests (
   FOREIGN KEY (requester_id) REFERENCES user_login(id)
 );
 
+CREATE TABLE messages (
+	id SERIAL PRIMARY KEY,
+	from_user INT,
+	to_user INT,
+	content TEXT,
+	timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 
+CREATE TABLE password_resets (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES user_login(id) ON DELETE CASCADE,
+  token TEXT NOT NULL,
+  expires_at TIMESTAMP NOT NULL
+);

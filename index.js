@@ -9,6 +9,9 @@ const jwt = require("jsonwebtoken");
 const { S3Client } = require("@aws-sdk/client-s3");
 const multer = require("multer");
 const multerS3 = require("multer-s3");
+const emailjs = require("emailjs-com");
+const crypto = require("crypto");
+const cron = require('node-cron');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -112,6 +115,7 @@ app.get("/api/activities", async (req, res) => {
       SELECT a.*, up.profile_photo 
       FROM activity a 
       JOIN user_profile up ON a.user_id_host = up.user_id
+      WHERE a.act_status != 'done'
     `);
     res.status(200).json(result.rows);
   } catch (err) {
@@ -763,6 +767,219 @@ app.delete(
     }
   }
 );
+
+// Endpoint to fetch all users excluding the current user
+app.get("/api/users", authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    const result = await db.query(
+      "SELECT username, profile_photo FROM user_profile WHERE user_id != $1",
+      [userId]
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Endpoint for sending a message
+app.post("/api/messages", authenticateToken, async (req, res) => {
+  const { to, content } = req.body;
+  const from = req.user.userId;
+
+  try {
+    const result = await db.query(
+      "INSERT INTO messages (from_user, to_user, content, timestamp) VALUES ($1, $2, $3, CURRENT_TIMESTAMP) RETURNING *",
+      [from, to, content]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error sending message:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Endpoint for fetching messages
+app.get("/api/messages/:userId", authenticateToken, async (req, res) => {
+  const { userId } = req.params;
+  const currentUser = req.user.userId;
+
+  try {
+    const result = await db.query(
+      "SELECT * FROM messages WHERE (from_user = $1 AND to_user = $2) OR (from_user = $2 AND to_user = $1) ORDER BY timestamp",
+      [parseInt(currentUser, 10), parseInt(userId, 10)]
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching messages:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Endpoint to fetch users with whom the current user has chat history
+app.get("/api/chat-users", authenticateToken, async (req, res) => {
+  const currentUserId = req.user.userId;
+  const targetUserId = req.query.targetUserId;
+  try {
+    let result = await db.query(
+      `SELECT DISTINCT u.id, u.username, up.profile_photo 
+       FROM user_login u 
+       INNER JOIN user_profile up ON u.id = up.user_id 
+       INNER JOIN messages m ON u.id = m.from_user OR u.id = m.to_user 
+       WHERE (m.from_user = $1 OR m.to_user = $1) AND u.id != $1`,
+      [currentUserId]
+    );
+    if (targetUserId) {
+      const targetUserResult = await db.query(
+        `SELECT u.id, u.username, up.profile_photo 
+         FROM user_login u 
+         INNER JOIN user_profile up ON u.id = up.user_id 
+         WHERE u.id = $1`,
+        [targetUserId]
+      );
+
+
+      if (targetUserResult.rows.length > 0 && !result.rows.some(user => user.id === parseInt(targetUserId))) {
+        result.rows.push(targetUserResult.rows[0]);
+      }
+    }
+
+
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching chat users:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Endpoint to check if the email exists and send reset email
+app.post("/api/check-email", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Check if the email exists in the user_login table
+    const result = await db.query("SELECT * FROM user_login WHERE email = $1", [
+      email,
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Email not found" });
+    }
+
+    const user = result.rows[0];
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 3600000); // Token valid for 1 hour
+
+    await db.query(
+      "INSERT INTO password_resets (user_id, token, expires_at) VALUES ($1, $2, $3)",
+      [user.id, token, expiresAt]
+    );
+
+    const resetLink = `${process.env.BASE_URL}/reset-password?token=${token}`;
+
+    res
+      .status(200)
+      .json({ message: "Email verification successful", resetLink });
+  } catch (error) {
+    console.error("Error checking email:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Endpoint to validate token
+app.get("/api/validate-token", async (req, res) => {
+  const { token } = req.query;
+
+  try {
+    const result = await db.query(
+      "SELECT * FROM password_resets WHERE token = $1",
+      [token]
+    );
+
+    if (
+      result.rows.length === 0 ||
+      new Date(result.rows[0].expires_at) < new Date()
+    ) {
+      return res.status(400).json({ error: "Invalid or expired token" });
+    }
+
+    res.status(200).json({ valid: true });
+  } catch (err) {
+    console.error("Error validating token:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Endpoint to reset password
+app.post("/api/reset-password", async (req, res) => {
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    return res.status(400).json({ error: "Token and password are required" });
+  }
+
+  try {
+    const result = await db.query(
+      "SELECT * FROM password_resets WHERE token = $1",
+      [token]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: "Invalid or expired token" });
+    }
+
+    const resetRequest = result.rows[0];
+
+    if (resetRequest.expires_at < new Date()) {
+      return res.status(400).json({ error: "Token has expired" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await db.query("UPDATE user_login SET password_hash = $1 WHERE id = $2", [
+      hashedPassword,
+      resetRequest.user_id,
+    ]);
+    await db.query("DELETE FROM password_resets WHERE token = $1", [token]);
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Endpoint to update the status of activities based on the current date and time
+app.post("/api/update-activity-status", async (req, res) => {
+  try {
+    const now = new Date();
+
+    // Update activities that are past their scheduled date and time to 'done'
+    await db.query(
+      "UPDATE activity SET act_status = 'done' WHERE act_date < $1 OR (act_date = $1 AND act_time <= $2)",
+      [now.toISOString().split('T')[0], now.toTimeString().split(' ')[0]]
+    );
+
+    res.status(200).json({ message: "Activity statuses updated successfully" });
+  } catch (err) {
+    console.error("Error updating activity statuses:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Cron job to automatically update activity statuses every 30 seconds
+cron.schedule('*/30 * * * * *', async () => {
+  try {
+    const now = new Date();
+    await db.query(
+      "UPDATE activity SET act_status = 'done' WHERE act_date < $1 OR (act_date = $1 AND act_time <= $2)",
+      [now.toISOString().split('T')[0], now.toTimeString().split(' ')[0]]
+    );
+  } catch (err) {
+    console.error("Error updating activity statuses:", err);
+  }
+});
 
 // Serve the React app for all other routes
 app.get("*", (req, res) => {

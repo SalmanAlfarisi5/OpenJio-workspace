@@ -11,7 +11,8 @@ const CreateActivity = () => {
     act_date: "",
     act_time: "",
     location: "",
-    num_people: 0,
+    num_people: 1,
+    act_status: "upcoming", // Add default status
   });
 
   useEffect(() => {
@@ -22,7 +23,9 @@ const CreateActivity = () => {
         act_date: activityToEdit.act_date,
         act_time: activityToEdit.act_time,
         location: activityToEdit.location,
-        num_people: activityToEdit.num_people,
+        num_people:
+          activityToEdit.num_people > 0 ? activityToEdit.num_people : 1,
+        act_status: activityToEdit.act_status || "upcoming", // Handle existing status
       });
     }
   }, [activityToEdit]);
