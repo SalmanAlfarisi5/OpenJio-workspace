@@ -65,8 +65,8 @@ const Forum = () => {
 
   return (
     <div className="Forum-page">
-      <h1>Forum</h1>
       <div className="Forum-container">
+        <h1>Forum</h1>
         <div className="comments-section">
           {comments.map((comment) => (
             <div key={comment.id} className="comment">
