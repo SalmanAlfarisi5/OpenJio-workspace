@@ -246,6 +246,9 @@ const Profile = () => {
           </button>
         )}
       </div>
+      <div className="return-button" onClick={() => navigate("../activities")}>
+        Return
+      </div>
     </div>
   );
 };
