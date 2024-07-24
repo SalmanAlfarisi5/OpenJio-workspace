@@ -36,36 +36,38 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="reset-password-container">
-      <h2>Reset Password</h2>
-      <form onSubmit={handleSubmit}>
-        {message && <div className="message">{message}</div>}
-        <div className="input-container">
-          <label htmlFor="password">New Password</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <div className="input-container">
-          <label htmlFor="confirmPassword">Confirm Password</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            name="confirmPassword"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" className="submit-button">
-          Reset Password
-        </button>
-      </form>
+    <div className="reset-password">
+      <div className="reset-password-container">
+        <h2>Reset Password</h2>
+        <form onSubmit={handleSubmit}>
+          {message && <div className="message2">{message}</div>}
+          <div className="input-container2">
+            <label htmlFor="password">New Password</label>
+            <input
+              type="password2"
+              id="password"
+              name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="input-container2">
+            <label htmlFor="confirmPassword">Confirm Password</label>
+            <input
+              type="password2"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" className="submit-button2">
+            Reset Password
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
