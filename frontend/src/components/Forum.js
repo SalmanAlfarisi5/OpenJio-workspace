@@ -64,56 +64,58 @@ const Forum = () => {
   };
 
   return (
-    <div>
+    <div className="Forum-page">
       <h1>Forum</h1>
-      <form onSubmit={handleCommentSubmit}>
-        <textarea
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Write a comment..."
-        />
-        <button type="submit">Post Comment</button>
-      </form>
-      <div className="comments-section">
-        {comments.map((comment) => (
-          <div key={comment.id} className="comment">
-            <p>
-              <strong>{comment.username}</strong> (
-              {new Date(comment.created_at).toLocaleString()}):{" "}
-              {comment.content}
-            </p>
-            <button onClick={() => setReplyingTo(comment.id)}>Reply</button>
-            {replyingTo === comment.id && (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  handleReplySubmit(comment.id);
-                }}
-              >
-                <textarea
-                  value={replyContent}
-                  onChange={(e) => setReplyContent(e.target.value)}
-                  placeholder="Write a reply..."
-                />
-                <button type="submit">Post Reply</button>
-              </form>
-            )}
-            {comment.replies &&
-              comment.replies.map((reply) => (
-                <div key={reply.id} className="reply">
-                  <p>
-                    <strong>{reply.username}</strong> (
-                    {new Date(reply.created_at).toLocaleString()}):{" "}
-                    {reply.content}
-                  </p>
-                </div>
-              ))}
-          </div>
-        ))}
+      <div className="Forum-container">
+        <div className="comments-section">
+          {comments.map((comment) => (
+            <div key={comment.id} className="comment">
+              <p>
+                <strong>{comment.username}</strong> (
+                {new Date(comment.created_at).toLocaleString()}):{" "}
+                {comment.content}
+              </p>
+              <button onClick={() => setReplyingTo(comment.id)}>Reply</button>
+              {replyingTo === comment.id && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleReplySubmit(comment.id);
+                  }}
+                >
+                  <textarea
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    placeholder="Write a reply..."
+                  />
+                  <button type="submit">Post Reply</button>
+                </form>
+              )}
+              {comment.replies &&
+                comment.replies.map((reply) => (
+                  <div key={reply.id} className="reply">
+                    <p>
+                      <strong>{reply.username}</strong> (
+                      {new Date(reply.created_at).toLocaleString()}):{" "}
+                      {reply.content}
+                    </p>
+                  </div>
+                ))}
+            </div>
+          ))}
+        </div>
+        <form onSubmit={handleCommentSubmit}>
+          <textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Write a comment..."
+          />
+          <button type="submit">Post Comment</button>
+        </form>
+        <button className="return-button" onClick={() => navigate("/home")}>
+          return
+        </button>
       </div>
-      <button className="return-button" onClick={() => navigate("/home")}>
-        return
-      </button>
     </div>
   );
 };
