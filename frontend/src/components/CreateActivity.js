@@ -12,6 +12,7 @@ const CreateActivity = () => {
     act_time: "",
     location: "",
     num_people: 1,
+    act_status: "ongoing",
   });
 
   useEffect(() => {
@@ -24,6 +25,7 @@ const CreateActivity = () => {
         location: activityToEdit.location,
         num_people:
           activityToEdit.num_people > 0 ? activityToEdit.num_people : 1,
+        act_status: activityToEdit.act_status || "ongoing", // Handle existing status
       });
     }
   }, [activityToEdit]);

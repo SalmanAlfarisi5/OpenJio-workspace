@@ -11,6 +11,7 @@ const multer = require("multer");
 const multerS3 = require("multer-s3");
 const emailjs = require("emailjs-com");
 const crypto = require("crypto");
+const cron = require('node-cron');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -114,6 +115,7 @@ app.get("/api/activities", async (req, res) => {
       SELECT a.*, up.profile_photo 
       FROM activity a 
       JOIN user_profile up ON a.user_id_host = up.user_id
+      WHERE a.act_status != 'done'
     `);
     res.status(200).json(result.rows);
   } catch (err) {
@@ -950,6 +952,37 @@ app.post("/api/reset-password", async (req, res) => {
   } catch (error) {
     console.error("Error resetting password:", error);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Endpoint to update the status of activities based on the current date and time
+app.post("/api/update-activity-status", async (req, res) => {
+  try {
+    const now = new Date();
+
+    // Update activities that are past their scheduled date and time to 'done'
+    await db.query(
+      "UPDATE activity SET act_status = 'done' WHERE act_date < $1 OR (act_date = $1 AND act_time <= $2)",
+      [now.toISOString().split('T')[0], now.toTimeString().split(' ')[0]]
+    );
+
+    res.status(200).json({ message: "Activity statuses updated successfully" });
+  } catch (err) {
+    console.error("Error updating activity statuses:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Cron job to automatically update activity statuses every 30 seconds
+cron.schedule('*/30 * * * * *', async () => {
+  try {
+    const now = new Date();
+    await db.query(
+      "UPDATE activity SET act_status = 'done' WHERE act_date < $1 OR (act_date = $1 AND act_time <= $2)",
+      [now.toISOString().split('T')[0], now.toTimeString().split(' ')[0]]
+    );
+  } catch (err) {
+    console.error("Error updating activity statuses:", err);
   }
 });
 

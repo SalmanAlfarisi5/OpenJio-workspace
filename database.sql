@@ -37,7 +37,8 @@ CREATE TABLE activity(
 	location TEXT,
 	act_time TIME WITHOUT TIME ZONE,
 	num_people INT,
-	num_people_joined INT DEFAULT 0;
+	num_people_joined INT DEFAULT 0,
+	act_status VARCHAR(50) DEFAULT 'ongoing'
 );
 
 CREATE TABLE comments (
@@ -82,5 +83,3 @@ CREATE TABLE password_resets (
   token TEXT NOT NULL,
   expires_at TIMESTAMP NOT NULL
 );
-
-// this is db, very latest, but yeah just for a pinpoint lol (can delete it later)
