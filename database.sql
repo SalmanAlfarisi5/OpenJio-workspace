@@ -23,8 +23,8 @@ CREATE TABLE user_profile(
  	activity_slot_7 INT,
  	activity_slot_8 INT,
  	activity_slot_9 INT,
- 	activity_slot_10 INT
-	ADD COLUMN activities_joined INTEGER DEFAULT 0;
+ 	activity_slot_10 INT,
+	activities_joined INT DEFAULT 0
 );
 
 CREATE TABLE activity(
@@ -61,7 +61,7 @@ CREATE TABLE replies (
 
 CREATE TABLE join_requests (
   id SERIAL PRIMARY KEY,
-  activity_id INT
+  activity_id INT,
   requester_id INT,
   status VARCHAR(50) DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

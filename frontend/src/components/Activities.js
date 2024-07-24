@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import "./Activities.css";
+import "../Style.css";
 import { useNavigate } from "react-router-dom";
 import emailjs from "emailjs-com";
 
@@ -70,15 +70,18 @@ const Activities = () => {
   const fetchPendingRequests = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`/api/user-pending-requests/${currentUserId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `/api/user-pending-requests/${currentUserId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
-        setRequestedActivities(data.map(request => request.activity_id));
+        setRequestedActivities(data.map((request) => request.activity_id));
       } else {
         const errorText = await response.text();
         console.error("Error fetching pending requests:", errorText);
@@ -91,11 +94,14 @@ const Activities = () => {
   const fetchUserActivitySlots = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`/api/user-activity-slots/${currentUserId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `/api/user-activity-slots/${currentUserId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -122,7 +128,7 @@ const Activities = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setUserLists(prevUserLists => ({
+        setUserLists((prevUserLists) => ({
           ...prevUserLists,
           [activityId]: data,
         }));
@@ -146,9 +152,11 @@ const Activities = () => {
       });
 
       if (response.ok) {
-        setUserLists(prevUserLists => ({
+        setUserLists((prevUserLists) => ({
           ...prevUserLists,
-          [activityId]: prevUserLists[activityId].filter(user => user.id !== userId),
+          [activityId]: prevUserLists[activityId].filter(
+            (user) => user.id !== userId
+          ),
         }));
         alert("User removed successfully");
       } else {
@@ -162,7 +170,8 @@ const Activities = () => {
 
   const renderUserList = (activityId) => {
     const users = userLists[activityId] || [];
-    const numPeople = activities.find(act => act.id === activityId)?.num_people || 0;
+    const numPeople =
+      activities.find((act) => act.id === activityId)?.num_people || 0;
     const userItems = [];
 
     for (let i = 0; i < numPeople; i++) {
@@ -177,7 +186,10 @@ const Activities = () => {
           />
           <span>{user ? user.username : "Empty"}</span>
           {user && (
-            <button className="remove-button" onClick={() => handleRemoveUser(user.id, activityId)}>
+            <button
+              className="remove-button"
+              onClick={() => handleRemoveUser(user.id, activityId)}
+            >
               X
             </button>
           )}
@@ -188,23 +200,26 @@ const Activities = () => {
     return (
       <div className="user-list-popup" key={activityId}>
         <h3 className="popup-header">Users Joined</h3>
-        <button className="close-button" onClick={() => handleUserListClose(activityId)}>X</button>
-        <div className="request-list-content">
-          {userItems}
-        </div>
+        <button
+          className="close-button"
+          onClick={() => handleUserListClose(activityId)}
+        >
+          X
+        </button>
+        <div className="request-list-content">{userItems}</div>
       </div>
     );
   };
 
   const handleUserListClick = (activityId) => {
     if (!visibleUserLists.includes(activityId)) {
-      setVisibleUserLists(prev => [...prev, activityId]);
+      setVisibleUserLists((prev) => [...prev, activityId]);
     }
     fetchUsersForActivity(activityId);
   };
 
   const handleUserListClose = (activityId) => {
-    setVisibleUserLists(prev => prev.filter(id => id !== activityId));
+    setVisibleUserLists((prev) => prev.filter((id) => id !== activityId));
   };
 
   useEffect(() => {
@@ -226,11 +241,14 @@ const Activities = () => {
           const activitiesData = await activitiesResponse.json();
           const activitiesWithMapUrls = await Promise.all(
             activitiesData.map(async (activity) => {
-              const hostResponse = await fetch(`/api/profile/${activity.user_id_host}`, {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              });
+              const hostResponse = await fetch(
+                `/api/profile/${activity.user_id_host}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
               const hostData = await hostResponse.json();
               return {
                 ...activity,
@@ -244,12 +262,12 @@ const Activities = () => {
           setActivities(activitiesWithMapUrls);
 
           // Match activities with user activity slots
-          const matchedActivities = activitiesWithMapUrls.map(activity => {
+          const matchedActivities = activitiesWithMapUrls.map((activity) => {
             const isJoined = Object.values(slotsResponse).includes(activity.id);
             return {
               ...activity,
               isJoined,
-              isFull: activity.num_people_joined >= activity.num_people
+              isFull: activity.num_people_joined >= activity.num_people,
             };
           });
           setActivities(matchedActivities);
@@ -347,7 +365,7 @@ const Activities = () => {
         return;
       }
 
-      if (userActivities.filter(id => id !== null).length >= 10) {
+      if (userActivities.filter((id) => id !== null).length >= 10) {
         alert("You have joined too many activities!");
         return;
       }
@@ -491,177 +509,188 @@ const Activities = () => {
   });
 
   return (
-    <div className="activities-container">
-      <img
-        src={profilePhoto}
-        alt="Profile"
-        className="Profile"
-        onClick={() => handleProfileClick(currentUserId)}
-      />
-      <div className="top-button">
-        <button
-          className="button button-link"
-          onClick={handleRequestListClick}
-        >
-          Request List
-        </button>
-        <button
-          className="button button-link"
-          onClick={handleMyActivitiesClick}
-        >
-          {showMyActivities ? "All Activities" : "My Activities"}
-        </button>
-        <button
-          className="button button-link"
-          onClick={handleCreateActivityClick}
-        >
-          Create an Activity
-        </button>
-      </div>
-      <div className="search-sort-container">
-        <div className="search-bar">
-          <input
-            type="text"
-            placeholder="Search by title..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-          />
-        </div>
-        <div className="sort-order">
-          <label htmlFor="sortOrder">Sort by date: </label>
-          <select
-            id="sortOrder"
-            value={sortOrder}
-            onChange={handleSortOrderChange}
+    <div className="activities">
+      <div className="activities-container">
+        <img
+          src={profilePhoto}
+          alt="Profile"
+          className="Profile"
+          onClick={() => handleProfileClick(currentUserId)}
+        />
+        <div className="top-button">
+          <button
+            className="button button-link"
+            onClick={handleRequestListClick}
           >
-            <option value="asc">Earliest to Latest</option>
-            <option value="desc">Latest to Earliest</option>
-          </select>
+            Request List
+          </button>
+          <button
+            className="button button-link"
+            onClick={handleMyActivitiesClick}
+          >
+            {showMyActivities ? "All Activities" : "My Activities"}
+          </button>
+          <button
+            className="button button-link"
+            onClick={handleCreateActivityClick}
+          >
+            Create an Activity
+          </button>
         </div>
-      </div>
-      {showRequests && (
-        <div className="request-list">
-          <h3>Requests</h3>
-          <div className="request-list-content">
-            {requests.length === 0 ? (
-              <p className="no-requests">No requests at the moment</p>
-            ) : (
-              requests.map((request) => (
-                <div key={request.id} className="request-item">
-                  <img
-                    src={request.profile_photo || "/Avatar.png"}
-                    alt={request.username}
-                    className="requester-image"
-                    onClick={() => handleProfileClick(request.requester_id)}
-                  />
-                  <span>{request.username} would like to join your activity, {request.activity_title}!</span>
-                  <button
-                    className="accept-button"
-                    onClick={() => handleAcceptRequest(request.id)}
+        <div className="search-sort-container">
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Search by title..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </div>
+          <div className="sort-order">
+            <label htmlFor="sortOrder">Sort by date: </label>
+            <select
+              id="sortOrder"
+              value={sortOrder}
+              onChange={handleSortOrderChange}
+            >
+              <option value="asc">Earliest to Latest</option>
+              <option value="desc">Latest to Earliest</option>
+            </select>
+          </div>
+        </div>
+        {showRequests && (
+          <div className="request-list">
+            <h3>Requests</h3>
+            <div className="request-list-content">
+              {requests.length === 0 ? (
+                <p className="no-requests">No requests at the moment</p>
+              ) : (
+                requests.map((request) => (
+                  <div key={request.id} className="request-item">
+                    <img
+                      src={request.profile_photo || "/Avatar.png"}
+                      alt={request.username}
+                      className="requester-image"
+                      onClick={() => handleProfileClick(request.requester_id)}
+                    />
+                    <span>
+                      {request.username} would like to join your activity,{" "}
+                      {request.activity_title}!
+                    </span>
+                    <button
+                      className="accept-button"
+                      onClick={() => handleAcceptRequest(request.id)}
+                    >
+                      Accept
+                    </button>
+                    <button
+                      className="reject-button"
+                      onClick={() => handleRejectRequest(request.id)}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+        <div className="activities-list">
+          {sortedActivities.map((activity) => (
+            <div key={activity.id} className="activity-block">
+              <img
+                onClick={() =>
+                  handleProfileClick(
+                    activity.user_id_host === currentUserId
+                      ? ""
+                      : activity.user_id_host
+                  )
+                }
+                src={activity.profile_photo || "/Avatar.png"}
+                alt={activity.title}
+                className="activity-image"
+              />
+              <h3 className="activity-title">{activity.title}</h3>
+              <p className="activity-description">{activity.act_desc}</p>
+              <p className="activity-date-time">
+                <span>Date: {formatDate(activity.act_date)}</span>
+                <br />
+                <span>Time: {activity.act_time}</span>
+                <br />
+                <span>
+                  Location:{" "}
+                  <a
+                    href={activity.mapsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="maps-link"
                   >
-                    Accept
+                    {activity.location}
+                  </a>
+                </span>
+                <br />
+                <span>
+                  People: {activity.num_people_joined} / {activity.num_people}
+                </span>
+              </p>
+              {!showMyActivities && (
+                <>
+                  {String(activity.user_id_host) === currentUserId ? (
+                    <button className="button joined-button" disabled>
+                      Joined
+                    </button>
+                  ) : activity.isJoined ? (
+                    <button className="button joined-button" disabled>
+                      Joined
+                    </button>
+                  ) : activity.isFull ? (
+                    <button className="button full-button" disabled>
+                      Full
+                    </button>
+                  ) : requestedActivities.includes(activity.id) ? (
+                    <button className="button requested-button" disabled>
+                      Requested
+                    </button>
+                  ) : (
+                    <button
+                      className="button join-button"
+                      onClick={() => handleJoinClick(activity)}
+                    >
+                      Join
+                    </button>
+                  )}
+                </>
+              )}
+              {showMyActivities && (
+                <div className="button-container">
+                  <button
+                    className="button delete-button"
+                    onClick={() => handleDeleteClick(activity.id)}
+                  >
+                    Delete
                   </button>
                   <button
-                    className="reject-button"
-                    onClick={() => handleRejectRequest(request.id)}
+                    className="button edit-button"
+                    onClick={() => handleEditClick(activity)}
                   >
-                    Reject
+                    Edit
+                  </button>
+                  <button
+                    className="button users-button"
+                    onClick={() => handleUserListClick(activity.id)}
+                  >
+                    Users
                   </button>
                 </div>
-              ))
-            )}
-          </div>
+              )}
+              {visibleUserLists.includes(activity.id) &&
+                renderUserList(activity.id)}
+            </div>
+          ))}
         </div>
-      )}
-      <div className="activities-list">
-        {sortedActivities.map((activity) => (
-          <div key={activity.id} className="activity-block">
-            <img
-              onClick={() =>
-                handleProfileClick(
-                  activity.user_id_host === currentUserId ? "" : activity.user_id_host
-                )
-              }
-              src={activity.profile_photo || "/Avatar.png"}
-              alt={activity.title}
-              className="activity-image"
-            />
-            <h3 className="activity-title">{activity.title}</h3>
-            <p className="activity-description">{activity.act_desc}</p>
-            <p className="activity-date-time">
-              <span>Date: {formatDate(activity.act_date)}</span>
-              <br />
-              <span>Time: {activity.act_time}</span>
-              <br />
-              <span>
-                Location:{" "}
-                <a
-                  href={activity.mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="maps-link"
-                >
-                  {activity.location}
-                </a>
-              </span>
-              <br />
-              <span>
-                People: {activity.num_people_joined} / {activity.num_people}
-              </span>
-            </p>
-            {!showMyActivities && (
-              <>
-                {String(activity.user_id_host) === currentUserId ? (
-                  <button className="button joined-button" disabled>
-                    Joined
-                  </button>
-                ) : activity.isJoined ? (
-                  <button className="button joined-button" disabled>
-                    Joined
-                  </button>
-                ) : activity.isFull ? (
-                  <button className="button full-button" disabled>
-                    Full
-                  </button>
-                ) : requestedActivities.includes(activity.id) ? (
-                  <button className="button requested-button" disabled>
-                    Requested
-                  </button>
-                ) : (
-                  <button
-                    className="button join-button"
-                    onClick={() => handleJoinClick(activity)}
-                  >
-                    Join
-                  </button>
-                )}
-              </>
-            )}
-            {showMyActivities && (
-              <div className="button-container">
-                <button
-                  className="button delete-button"
-                  onClick={() => handleDeleteClick(activity.id)}
-                >
-                  Delete
-                </button>
-                <button
-                  className="button edit-button"
-                  onClick={() => handleEditClick(activity)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="button users-button"
-                  onClick={() => handleUserListClick(activity.id)}
-                >
-                  Users
-                </button>
-              </div>
-            )}
-            {visibleUserLists.includes(activity.id) && renderUserList(activity.id)}
-          </div>
-        ))}
+        <button className="return-button" onClick={() => navigate("/home")}>
+          Return
+        </button>
       </div>
     </div>
   );

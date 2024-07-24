@@ -217,9 +217,14 @@ app.post("/api/login", async (req, res) => {
       return res.status(400).json({ error: "Invalid username or password" });
     }
 
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    // Include the username in the JWT payload
+    const token = jwt.sign(
+      { userId: user.id, username: user.username },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
 
     res.json({
       message: "Login successful",
@@ -386,10 +391,10 @@ app.get(
   }
 );
 
-// Endpoint to fetch all users (usernames only)
+// Endpoint to fetch all users (usernames and ids)
 app.get("/api/users", async (req, res) => {
   try {
-    const result = await db.query("SELECT username FROM user_login");
+    const result = await db.query("SELECT id, username FROM user_login");
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Error fetching users:", err);
@@ -682,7 +687,7 @@ app.get(
   }
 );
 
-//Endpoint to fetch user that has joined the activity
+// Endpoint to fetch user that has joined the activity
 app.get(
   "/api/activity-users/:activityId",
   authenticateToken,

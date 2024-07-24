@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./CreateActivity.css";
+import "../Style.css";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const CreateActivity = () => {
@@ -12,7 +12,7 @@ const CreateActivity = () => {
     act_time: "",
     location: "",
     num_people: 1,
-    act_status: "upcoming", // Add default status
+    act_status: "ongoing",
   });
 
   useEffect(() => {
@@ -25,7 +25,7 @@ const CreateActivity = () => {
         location: activityToEdit.location,
         num_people:
           activityToEdit.num_people > 0 ? activityToEdit.num_people : 1,
-        act_status: activityToEdit.act_status || "upcoming", // Handle existing status
+        act_status: activityToEdit.act_status || "ongoing", // Handle existing status
       });
     }
   }, [activityToEdit]);
@@ -34,7 +34,12 @@ const CreateActivity = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    if (name === "num_people") {
+      const numValue = Math.max(1, parseInt(value, 10) || 1); // Ensure value is at least 1
+      setFormData({ ...formData, [name]: numValue });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -82,59 +87,61 @@ const CreateActivity = () => {
   };
 
   return (
-    <div className="create-activity">
-      <h1>{activityToEdit ? "Edit Activity" : "Create Activity"}</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="title"
-          placeholder="Title"
-          value={formData.title}
-          onChange={handleChange}
-          required
-        />
-        <textarea
-          name="act_desc"
-          placeholder="Description"
-          value={formData.act_desc}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="date"
-          name="act_date"
-          value={formData.act_date}
-          min={getCurrentDate()}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="time"
-          name="act_time"
-          value={formData.act_time}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          name="location"
-          placeholder="Location"
-          value={formData.location}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="number"
-          name="num_people"
-          placeholder="Number of People"
-          value={formData.num_people}
-          onChange={handleChange}
-          required
-        />
-        <button type="submit">
-          {activityToEdit ? "Update Activity" : "Create Activity"}
-        </button>
-      </form>
+    <div className="create-activity-page">
+      <div className="create-activity">
+        <h1>{activityToEdit ? "Edit Activity" : "Create Activity"}</h1>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            name="title"
+            placeholder="Title"
+            value={formData.title}
+            onChange={handleChange}
+            required
+          />
+          <textarea
+            name="act_desc"
+            placeholder="Description"
+            value={formData.act_desc}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="date"
+            name="act_date"
+            value={formData.act_date}
+            min={getCurrentDate()}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="time"
+            name="act_time"
+            value={formData.act_time}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="text"
+            name="location"
+            placeholder="Location"
+            value={formData.location}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="number"
+            name="num_people"
+            placeholder="Number of People"
+            value={formData.num_people}
+            onChange={handleChange}
+            required
+          />
+          <button type="submit">
+            {activityToEdit ? "Update Activity" : "Create Activity"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
