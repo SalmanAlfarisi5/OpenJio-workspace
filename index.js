@@ -160,7 +160,7 @@ app.get("/api/my-activities", authenticateToken, async (req, res) => {
     const userId = req.user.userId;
 
     const result = await db.query(
-      "SELECT * FROM activity WHERE user_id_host = $1",
+      "SELECT * FROM activity WHERE user_id_host = $1 AND act_status != 'done'",
       [userId]
     );
     res.status(200).json(result.rows);

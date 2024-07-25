@@ -610,6 +610,9 @@ const Activities = () => {
                 alt={activity.title}
                 className="activity-image"
               />
+              <span className="activity-username">
+                {activity.username}
+              </span>
               <h3 className="activity-title">{activity.title}</h3>
               <p className="activity-description">{activity.act_desc}</p>
               <p className="activity-date-time">
