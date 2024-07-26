@@ -668,27 +668,37 @@ const Activities = () => {
               <h3 className="activity-title">{activity.title}</h3>
               <p className="activity-description">{activity.act_desc}</p>
               <hr className="separator-line" />
-              <p className="activity-date-time">
-                <span>Date: {formatDate(activity.act_date)}</span>
-                <br />
-                <span>Time: {activity.act_time}</span>
-                <br />
-                <span>
-                  Location:{" "}
-                  <a
-                    href={activity.mapsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="maps-link"
-                  >
-                    {activity.location}
-                  </a>
-                </span>
-                <br />
-                <span>
-                  People: {activity.num_people_joined} / {activity.num_people}
-                </span>
-              </p>
+              {String(activity.user_id_host) === currentUserId || activity.isJoined ? (
+                <p className="activity-credentials">
+                  <span>Date: {formatDate(activity.act_date)}</span>
+                  <br />
+                  <span>Time: {activity.act_time}</span>
+                  <br />
+                  <span>
+                    Location:{" "}
+                    <a
+                      href={activity.mapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="maps-link"
+                    >
+                      {activity.location}
+                    </a>
+                  </span>
+                  <br />
+                  <span>
+                    People: {activity.num_people_joined} / {activity.num_people}
+                  </span>
+                </p>
+              ) : (
+                <p className="activity-credentials">
+                  <span>Ongoing until: {formatDate(activity.ongoing_until)}</span>
+                  <br />
+                  <span>
+                    People: {activity.num_people_joined} / {activity.num_people}
+                  </span>
+                </p>
+              )}
             </div>
 
             {visibleUserLists.includes(activity.id) &&
