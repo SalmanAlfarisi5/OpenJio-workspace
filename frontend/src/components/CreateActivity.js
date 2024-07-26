@@ -13,6 +13,7 @@ const CreateActivity = () => {
     location: "",
     num_people: 1,
     act_status: "ongoing",
+    ongoing_until: "", // Add ongoing_until to formData
   });
 
   useEffect(() => {
@@ -23,9 +24,9 @@ const CreateActivity = () => {
         act_date: activityToEdit.act_date,
         act_time: activityToEdit.act_time,
         location: activityToEdit.location,
-        num_people:
-          activityToEdit.num_people > 0 ? activityToEdit.num_people : 1,
-        act_status: activityToEdit.act_status || "ongoing", // Handle existing status
+        num_people: activityToEdit.num_people > 0 ? activityToEdit.num_people : 1,
+        act_status: activityToEdit.act_status || "ongoing",
+        ongoing_until: activityToEdit.ongoing_until || "", // Handle existing status
       });
     }
   }, [activityToEdit]);
@@ -134,6 +135,14 @@ const CreateActivity = () => {
             name="num_people"
             placeholder="Number of People"
             value={formData.num_people}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="date"
+            name="ongoing_until"
+            value={formData.ongoing_until}
+            min={getCurrentDate()}
             onChange={handleChange}
             required
           />
