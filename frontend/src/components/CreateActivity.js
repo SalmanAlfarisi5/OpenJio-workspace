@@ -24,7 +24,8 @@ const CreateActivity = () => {
         act_date: activityToEdit.act_date,
         act_time: activityToEdit.act_time,
         location: activityToEdit.location,
-        num_people: activityToEdit.num_people > 0 ? activityToEdit.num_people : 1,
+        num_people:
+          activityToEdit.num_people > 0 ? activityToEdit.num_people : 1,
         act_status: activityToEdit.act_status || "ongoing",
         ongoing_until: activityToEdit.ongoing_until || "", // Handle existing status
       });
@@ -107,6 +108,7 @@ const CreateActivity = () => {
             onChange={handleChange}
             required
           />
+          <>Date of Activity</>
           <input
             type="date"
             name="act_date"
@@ -115,6 +117,7 @@ const CreateActivity = () => {
             onChange={handleChange}
             required
           />
+          <>Time of Activity</>
           <input
             type="time"
             name="act_time"
@@ -130,6 +133,7 @@ const CreateActivity = () => {
             onChange={handleChange}
             required
           />
+          <>Number of people</>
           <input
             type="number"
             name="num_people"
@@ -138,6 +142,7 @@ const CreateActivity = () => {
             onChange={handleChange}
             required
           />
+          <>Ongoing Until</>
           <input
             type="date"
             name="ongoing_until"
