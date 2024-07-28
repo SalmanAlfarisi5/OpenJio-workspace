@@ -109,6 +109,7 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    padding: 20px;
 }
 
 .Profile {
@@ -125,7 +126,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-right: 200px;
+    margin-right: 400px;
 }
 
 .search-bar {
@@ -138,12 +139,17 @@
 
 .search-bar input {
     padding: 8px;
-    width: 200px;
+    width: 100%;
     border: 2px solid #f9a825;
     border-radius: 5px;
     background-color: #0f0f1a;
     color: #f9a825;
     font-size: 14px;
+
+}
+
+.sort-order {
+    margin-left: 5px;
 }
 
 .sort-order label {
@@ -769,8 +775,7 @@ p {
 }
 
 .login,
-.register,
-.create-activity-page {
+.register {
     height: 100vh;
     display: flex;
     justify-content: center;
@@ -780,7 +785,13 @@ p {
 }
 
 .create-activity-page {
+    display: flex;
+    justify-content: center;
     background-image: url(../public/create_activity_background.jpg);
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
+    padding-bottom: 50px;
 }
 
 .form-container,
@@ -791,8 +802,9 @@ p {
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    margin: 0 auto;
+    margin-top: 150px;
     backdrop-filter: blur(10px);
+    margin-top: 50px;
 }
 
 .form-text,
@@ -851,14 +863,14 @@ p {
     margin-bottom: 20px;
     border: 1px solid #ddd;
     border-radius: 5px;
-  }
-  
-  /* Add styles for the labels */
-  .create-activity label {
+}
+
+/* Add styles for the labels */
+.create-activity label {
     font-weight: bold;
     margin-bottom: 5px;
     display: block;
-  }  
+}
 
 .link-container {
     text-align: center;
@@ -998,4 +1010,13 @@ input[type="password2"] {
     border-radius: 4px;
     background-color: #fff;
     color: #333;
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: black;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
 }
