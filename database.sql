@@ -38,7 +38,9 @@ CREATE TABLE activity(
 	act_time TIME WITHOUT TIME ZONE,
 	num_people INT,
 	num_people_joined INT DEFAULT 0,
-	act_status VARCHAR(50) DEFAULT 'ongoing'
+	act_status VARCHAR(50) DEFAULT 'ongoing',
+	ongoing_until DATE,
+	category VARCHAR(255),
 );
 
 CREATE TABLE comments (

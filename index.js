@@ -91,14 +91,13 @@ app.post(
 
 // Endpoint to create a new activity
 app.post("/api/activities", authenticateToken, async (req, res) => {
-  const { title, act_desc, location, act_date, act_time, num_people } =
-    req.body;
+  const { title, act_desc, location, act_date, act_time, num_people, ongoing_until, category } = req.body;
   const userId = req.user.userId;
 
   try {
     const result = await db.query(
-      "INSERT INTO activity (title, act_desc, act_date, act_time, location, user_id_host, num_people) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
-      [title, act_desc, act_date, act_time, location, userId, num_people]
+      "INSERT INTO activity (title, act_desc, act_date, act_time, location, user_id_host, num_people, ongoing_until, category) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+      [title, act_desc, act_date, act_time, location, userId, num_people, ongoing_until, category]
     );
 
     res.status(201).json(result.rows[0]);
@@ -405,7 +404,7 @@ app.get("/api/users", async (req, res) => {
 // Endpoint to update an activity
 app.put("/api/activities/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { title, act_desc, location, act_date, act_time } = req.body;
+  const { title, act_desc, location, act_date, act_time, category, ongoing_until } = req.body;
   const userId = req.user.userId;
 
   try {
@@ -423,8 +422,8 @@ app.put("/api/activities/:id", authenticateToken, async (req, res) => {
 
     // Update the activity
     await db.query(
-      "UPDATE activity SET title = $1, act_desc = $2, location = $3, act_date = $4, act_time = $5 WHERE id = $6",
-      [title, act_desc, location, act_date, act_time, id]
+      "UPDATE activity SET title = $1, act_desc = $2, location = $3, act_date = $4, act_time = $5, category = $6, ongoing_until = $7 WHERE id = $8",
+      [title, act_desc, location, act_date, act_time, category, ongoing_until, id]
     );
 
     res.status(200).json({ message: "Activity updated successfully" });
@@ -977,14 +976,50 @@ app.post("/api/update-activity-status", async (req, res) => {
 cron.schedule('*/30 * * * * *', async () => {
   try {
     const now = new Date();
-    await db.query(
-      "UPDATE activity SET act_status = 'done' WHERE act_date < $1 OR (act_date = $1 AND act_time <= $2)",
+    const result = await db.query(
+      "UPDATE activity SET act_status = 'done' WHERE act_date < $1 OR (act_date = $1 AND act_time <= $2) RETURNING id",
       [now.toISOString().split('T')[0], now.toTimeString().split(' ')[0]]
     );
+
+    const doneActivityIds = result.rows.map(row => row.id);
+
+    if (doneActivityIds.length > 0) {
+      await clearUserActivitySlots(doneActivityIds);
+    }
+
   } catch (err) {
     console.error("Error updating activity statuses:", err);
   }
 });
+
+async function clearUserActivitySlots(doneActivityIds) {
+  try {
+    const users = await db.query("SELECT * FROM user_profile");
+
+    for (const user of users.rows) {
+      let updateRequired = false;
+      let updates = [];
+      let activitiesJoined = user.activities_joined;
+
+      for (let i = 1; i <= 10; i++) {
+        const slot = user[`activity_slot_${i}`];
+        if (slot && doneActivityIds.includes(slot)) {
+          updates.push(`activity_slot_${i} = NULL`);
+          activitiesJoined--;
+          updateRequired = true;
+        }
+      }
+
+      if (updateRequired) {
+        updates.push(`activities_joined = ${activitiesJoined}`);
+        const updateQuery = `UPDATE user_profile SET ${updates.join(', ')} WHERE id = ${user.id}`;
+        await db.query(updateQuery);
+      }
+    }
+  } catch (err) {
+    console.error("Error clearing user activity slots:", err);
+  }
+}
 
 // Serve the React app for all other routes
 app.get("*", (req, res) => {
