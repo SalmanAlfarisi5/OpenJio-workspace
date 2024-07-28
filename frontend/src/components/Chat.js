@@ -16,6 +16,7 @@ const Chat = () => {
     const fetchUsers = async () => {
       const targetUserId = location.state?.targetUserId;
 
+      // we used chat gpt helps for this
       try {
         const response = await axios.get("/api/chat-users", {
           headers: {
@@ -66,6 +67,7 @@ const Chat = () => {
     [navigate]
   );
 
+  // we used chat gpt helps for this
   useEffect(() => {
     const targetUserId = location.state?.targetUserId;
     if (targetUserId && users.length > 0) {

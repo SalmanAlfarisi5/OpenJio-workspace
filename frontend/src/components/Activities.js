@@ -25,13 +25,13 @@ const Activities = () => {
     "Social",
     "Others",
   ]; // Define categories
-
+  // we used chat gpt help for this
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const options = { day: "numeric", month: "long", year: "numeric" };
     return date.toLocaleDateString("en-GB", options);
   };
-
+  // we used chat gpt help for this
   const fetchProfilePhoto = async () => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -75,7 +75,7 @@ const Activities = () => {
       console.error("Error fetching join requests:", error);
     }
   };
-
+  // we used chat gpt help for this
   const fetchPendingRequests = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
@@ -99,7 +99,7 @@ const Activities = () => {
       console.error("Error fetching pending requests:", error);
     }
   }, [currentUserId]);
-
+  // we used chat gpt helps for this
   const fetchUserActivitySlots = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
@@ -176,7 +176,7 @@ const Activities = () => {
       console.error("Error removing user:", error);
     }
   };
-
+  // we used chat gpt helps for this
   const renderUserList = (activityId) => {
     const users = userLists[activityId] || [];
     const numPeople =
@@ -236,6 +236,7 @@ const Activities = () => {
       const url = showMyActivities ? "/api/my-activities" : "/api/activities";
       const token = localStorage.getItem("token");
 
+      // we used chat gpt helps for this
       try {
         const [activitiesResponse, slotsResponse] = await Promise.all([
           fetch(url, {
@@ -518,7 +519,7 @@ const Activities = () => {
     .filter((activity) =>
       categoryFilter ? activity.category === categoryFilter : true
     );
-
+  // we used chat gpt helps for this
   const sortedActivities = [...filteredActivities].sort((a, b) => {
     const dateA = new Date(a.act_date);
     const dateB = new Date(b.act_date);
