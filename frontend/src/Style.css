@@ -843,6 +843,23 @@ p {
     background-color: rgba(106, 72, 214, 0.8);
 }
 
+/* Add styles for the new category select */
+.create-activity select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  /* Add styles for the labels */
+  .create-activity label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+  }  
+
 .link-container {
     text-align: center;
     margin-top: 15px;

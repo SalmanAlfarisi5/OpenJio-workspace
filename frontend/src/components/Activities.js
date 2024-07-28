@@ -14,8 +14,11 @@ const Activities = () => {
   const [requestedActivities, setRequestedActivities] = useState([]);
   const [userLists, setUserLists] = useState({});
   const [visibleUserLists, setVisibleUserLists] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState(""); // Add category filter
   const navigate = useNavigate();
   const currentUserId = localStorage.getItem("user_id");
+
+  const categories = ["Sports", "Recreational", "Educational", "Social", "Others"]; // Define categories
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -494,13 +497,21 @@ const Activities = () => {
     setSortOrder(e.target.value);
   };
 
+  const handleCategoryFilterChange = (e) => {
+    setCategoryFilter(e.target.value);
+  };
+
   const handleEditClick = (activity) => {
     navigate("/CreateActivity", { state: { activity } });
   };
 
-  const filteredActivities = activities.filter((activity) =>
-    activity.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredActivities = activities
+    .filter((activity) =>
+      activity.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((activity) =>
+      categoryFilter ? activity.category === categoryFilter : true
+    );
 
   const sortedActivities = [...filteredActivities].sort((a, b) => {
     const dateA = new Date(a.act_date);
@@ -555,6 +566,21 @@ const Activities = () => {
             >
               <option value="asc">Earliest to Latest</option>
               <option value="desc">Latest to Earliest</option>
+            </select>
+          </div>
+          <div className="category-filter">
+            <label htmlFor="categoryFilter">Filter by category: </label>
+            <select
+              id="categoryFilter"
+              value={categoryFilter}
+              onChange={handleCategoryFilterChange}
+            >
+              <option value="">All Categories</option>
+              {categories.map((category, index) => (
+                <option key={index} value={category}>
+                  {category}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -668,37 +694,38 @@ const Activities = () => {
               <h3 className="activity-title">{activity.title}</h3>
               <p className="activity-description">{activity.act_desc}</p>
               <hr className="separator-line" />
-              {String(activity.user_id_host) === currentUserId || activity.isJoined ? (
-                <p className="activity-credentials">
-                  <span>Date: {formatDate(activity.act_date)}</span>
-                  <br />
-                  <span>Time: {activity.act_time}</span>
-                  <br />
-                  <span>
-                    Location:{" "}
-                    <a
-                      href={activity.mapsUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="maps-link"
-                    >
-                      {activity.location}
-                    </a>
-                  </span>
-                  <br />
-                  <span>
-                    People: {activity.num_people_joined} / {activity.num_people}
-                  </span>
-                </p>
-              ) : (
-                <p className="activity-credentials">
-                  <span>Ongoing until: {formatDate(activity.ongoing_until)}</span>
-                  <br />
-                  <span>
-                    People: {activity.num_people_joined} / {activity.num_people}
-                  </span>
-                </p>
-              )}
+              <p className="activity-credentials">
+                <span>Category: {activity.category}</span>
+                <br />
+                {String(activity.user_id_host) === currentUserId || activity.isJoined ? (
+                  <>
+                    <span>Date: {formatDate(activity.act_date)}</span>
+                    <br />
+                    <span>Time: {activity.act_time}</span>
+                    <br />
+                    <span>
+                      Location:{" "}
+                      <a
+                        href={activity.mapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="maps-link"
+                      >
+                        {activity.location}
+                      </a>
+                    </span>
+                    <br />
+                  </>
+                ) : (
+                  <>
+                    <span>Ongoing until: {formatDate(activity.ongoing_until)}</span>
+                    <br />
+                  </>
+                )}
+                <span>
+                  People: {activity.num_people_joined} / {activity.num_people}
+                </span>
+              </p>
             </div>
 
             {visibleUserLists.includes(activity.id) &&

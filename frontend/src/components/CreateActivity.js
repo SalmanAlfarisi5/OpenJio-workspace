@@ -14,7 +14,10 @@ const CreateActivity = () => {
     num_people: 1,
     act_status: "ongoing",
     ongoing_until: "", // Add ongoing_until to formData
+    category: "" // Add category to formData
   });
+
+  const categories = ["Sports", "Recreational", "Educational", "Social", "Others"]; // Define categories
 
   useEffect(() => {
     if (activityToEdit) {
@@ -27,6 +30,7 @@ const CreateActivity = () => {
         num_people: activityToEdit.num_people > 0 ? activityToEdit.num_people : 1,
         act_status: activityToEdit.act_status || "ongoing",
         ongoing_until: activityToEdit.ongoing_until || "", // Handle existing status
+        category: activityToEdit.category || "" // Handle existing category
       });
     }
   }, [activityToEdit]);
@@ -92,6 +96,7 @@ const CreateActivity = () => {
       <div className="create-activity">
         <h1>{activityToEdit ? "Edit Activity" : "Create Activity"}</h1>
         <form onSubmit={handleSubmit}>
+          <label>Title</label>
           <input
             type="text"
             name="title"
@@ -100,6 +105,7 @@ const CreateActivity = () => {
             onChange={handleChange}
             required
           />
+          <label>Description</label>
           <textarea
             name="act_desc"
             placeholder="Description"
@@ -107,6 +113,7 @@ const CreateActivity = () => {
             onChange={handleChange}
             required
           />
+          <label>Date</label>
           <input
             type="date"
             name="act_date"
@@ -115,6 +122,7 @@ const CreateActivity = () => {
             onChange={handleChange}
             required
           />
+          <label>Time</label>
           <input
             type="time"
             name="act_time"
@@ -122,6 +130,7 @@ const CreateActivity = () => {
             onChange={handleChange}
             required
           />
+          <label>Location</label>
           <input
             type="text"
             name="location"
@@ -130,6 +139,7 @@ const CreateActivity = () => {
             onChange={handleChange}
             required
           />
+          <label>Number of People</label>
           <input
             type="number"
             name="num_people"
@@ -138,6 +148,7 @@ const CreateActivity = () => {
             onChange={handleChange}
             required
           />
+          <label>Ongoing Until</label>
           <input
             type="date"
             name="ongoing_until"
@@ -146,6 +157,20 @@ const CreateActivity = () => {
             onChange={handleChange}
             required
           />
+          <label>Category</label>
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            required
+          >
+            <option value="" disabled>Select a category</option>
+            {categories.map((category, index) => (
+              <option key={index} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
           <button type="submit">
             {activityToEdit ? "Update Activity" : "Create Activity"}
           </button>
