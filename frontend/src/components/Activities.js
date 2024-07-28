@@ -18,7 +18,13 @@ const Activities = () => {
   const navigate = useNavigate();
   const currentUserId = localStorage.getItem("user_id");
 
-  const categories = ["Sports", "Recreational", "Educational", "Social", "Others"]; // Define categories
+  const categories = [
+    "Sports",
+    "Recreational",
+    "Educational",
+    "Social",
+    "Others",
+  ]; // Define categories
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -528,26 +534,6 @@ const Activities = () => {
           className="Profile"
           onClick={() => handleProfileClick(currentUserId)}
         />
-        <div className="top-button">
-          <button
-            className="button button-link"
-            onClick={handleRequestListClick}
-          >
-            Request List
-          </button>
-          <button
-            className="button button-link"
-            onClick={handleMyActivitiesClick}
-          >
-            {showMyActivities ? "All Activities" : "My Activities"}
-          </button>
-          <button
-            className="button button-link"
-            onClick={handleCreateActivityClick}
-          >
-            Create an Activity
-          </button>
-        </div>
         <div className="search-sort-container">
           <div className="search-bar">
             <input
@@ -568,7 +554,7 @@ const Activities = () => {
               <option value="desc">Latest to Earliest</option>
             </select>
           </div>
-          <div className="category-filter">
+          <div className="sort-order">
             <label htmlFor="categoryFilter">Filter by category: </label>
             <select
               id="categoryFilter"
@@ -583,6 +569,26 @@ const Activities = () => {
               ))}
             </select>
           </div>
+        </div>
+        <div className="top-button">
+          <button
+            className="button button-link"
+            onClick={handleRequestListClick}
+          >
+            Request List
+          </button>
+          <button
+            className="button button-link"
+            onClick={handleMyActivitiesClick}
+          >
+            {showMyActivities ? "All Activities" : "My Activities"}
+          </button>
+          <button
+            className="button button-link"
+            onClick={handleCreateActivityClick}
+          >
+            Create an Activity
+          </button>
         </div>
       </div>
 
@@ -697,7 +703,8 @@ const Activities = () => {
               <p className="activity-credentials">
                 <span>Category: {activity.category}</span>
                 <br />
-                {String(activity.user_id_host) === currentUserId || activity.isJoined ? (
+                {String(activity.user_id_host) === currentUserId ||
+                activity.isJoined ? (
                   <>
                     <span>Date: {formatDate(activity.act_date)}</span>
                     <br />
@@ -718,7 +725,9 @@ const Activities = () => {
                   </>
                 ) : (
                   <>
-                    <span>Ongoing until: {formatDate(activity.ongoing_until)}</span>
+                    <span>
+                      Ongoing until: {formatDate(activity.ongoing_until)}
+                    </span>
                     <br />
                   </>
                 )}

@@ -14,10 +14,16 @@ const CreateActivity = () => {
     num_people: 1,
     act_status: "ongoing",
     ongoing_until: "", // Add ongoing_until to formData
-    category: "" // Add category to formData
+    category: "", // Add category to formData
   });
 
-  const categories = ["Sports", "Recreational", "Educational", "Social", "Others"]; // Define categories
+  const categories = [
+    "Sports",
+    "Recreational",
+    "Educational",
+    "Social",
+    "Others",
+  ]; // Define categories
 
   useEffect(() => {
     if (activityToEdit) {
@@ -31,7 +37,7 @@ const CreateActivity = () => {
           activityToEdit.num_people > 0 ? activityToEdit.num_people : 1,
         act_status: activityToEdit.act_status || "ongoing",
         ongoing_until: activityToEdit.ongoing_until || "", // Handle existing status
-        category: activityToEdit.category || "" // Handle existing category
+        category: activityToEdit.category || "", // Handle existing category
       });
     }
   }, [activityToEdit]);
@@ -115,7 +121,6 @@ const CreateActivity = () => {
             required
           />
           <label>Date</label>
-          <>Date of Activity</>
           <input
             type="date"
             name="act_date"
@@ -125,7 +130,6 @@ const CreateActivity = () => {
             required
           />
           <label>Time</label>
-          <>Time of Activity</>
           <input
             type="time"
             name="act_time"
@@ -143,7 +147,6 @@ const CreateActivity = () => {
             required
           />
           <label>Number of People</label>
-          <>Number of people</>
           <input
             type="number"
             name="num_people"
@@ -153,7 +156,6 @@ const CreateActivity = () => {
             required
           />
           <label>Ongoing Until</label>
-          <>Ongoing Until</>
           <input
             type="date"
             name="ongoing_until"
@@ -169,7 +171,9 @@ const CreateActivity = () => {
             onChange={handleChange}
             required
           >
-            <option value="" disabled>Select a category</option>
+            <option value="" disabled>
+              Select a category
+            </option>
             {categories.map((category, index) => (
               <option key={index} value={category}>
                 {category}
