@@ -574,12 +574,6 @@ const Activities = () => {
         <div className="top-button">
           <button
             className="button button-link"
-            onClick={handleRequestListClick}
-          >
-            Request List
-          </button>
-          <button
-            className="button button-link"
             onClick={handleMyActivitiesClick}
           >
             {showMyActivities ? "All Activities" : "My Activities"}
@@ -589,6 +583,12 @@ const Activities = () => {
             onClick={handleCreateActivityClick}
           >
             Create an Activity
+          </button>
+          <button
+            className="button button-link"
+            onClick={handleRequestListClick}
+          >
+            Request List
           </button>
         </div>
       </div>
