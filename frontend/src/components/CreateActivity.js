@@ -54,6 +54,7 @@ const CreateActivity = () => {
     }
   };
 
+  // we used chat gpt helps for this
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
@@ -89,7 +90,7 @@ const CreateActivity = () => {
       console.error("Error:", error);
     }
   };
-
+  // we used chat gpt helps for this
   const getCurrentDate = () => {
     const today = new Date();
     const year = today.getFullYear();
