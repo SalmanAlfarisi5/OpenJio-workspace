@@ -520,6 +520,14 @@
 
 .message {
     margin-bottom: 10px;
+<<<<<<< Updated upstream
+=======
+    padding: 10px;
+    border-radius: 10px;
+    position: relative;
+    max-width: 50%;
+    word-wrap: break-word;
+>>>>>>> Stashed changes
 }
 
 .sent {
