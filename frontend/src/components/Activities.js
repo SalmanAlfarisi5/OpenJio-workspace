@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import "./Activities.css";
+import "../Style.css";
 import { useNavigate } from "react-router-dom";
 import emailjs from "emailjs-com";
 
@@ -14,15 +14,24 @@ const Activities = () => {
   const [requestedActivities, setRequestedActivities] = useState([]);
   const [userLists, setUserLists] = useState({});
   const [visibleUserLists, setVisibleUserLists] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState(""); // Add category filter
   const navigate = useNavigate();
   const currentUserId = localStorage.getItem("user_id");
 
+  const categories = [
+    "Sports",
+    "Recreational",
+    "Educational",
+    "Social",
+    "Others",
+  ]; // Define categories
+  // we used chat gpt help for this
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const options = { day: "numeric", month: "long", year: "numeric" };
     return date.toLocaleDateString("en-GB", options);
   };
-
+  // we used chat gpt help for this
   const fetchProfilePhoto = async () => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -66,19 +75,22 @@ const Activities = () => {
       console.error("Error fetching join requests:", error);
     }
   };
-
+  // we used chat gpt help for this
   const fetchPendingRequests = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`/api/user-pending-requests/${currentUserId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `/api/user-pending-requests/${currentUserId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
-        setRequestedActivities(data.map(request => request.activity_id));
+        setRequestedActivities(data.map((request) => request.activity_id));
       } else {
         const errorText = await response.text();
         console.error("Error fetching pending requests:", errorText);
@@ -87,15 +99,18 @@ const Activities = () => {
       console.error("Error fetching pending requests:", error);
     }
   }, [currentUserId]);
-
+  // we used chat gpt helps for this
   const fetchUserActivitySlots = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(`/api/user-activity-slots/${currentUserId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `/api/user-activity-slots/${currentUserId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -122,7 +137,7 @@ const Activities = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setUserLists(prevUserLists => ({
+        setUserLists((prevUserLists) => ({
           ...prevUserLists,
           [activityId]: data,
         }));
@@ -146,9 +161,11 @@ const Activities = () => {
       });
 
       if (response.ok) {
-        setUserLists(prevUserLists => ({
+        setUserLists((prevUserLists) => ({
           ...prevUserLists,
-          [activityId]: prevUserLists[activityId].filter(user => user.id !== userId),
+          [activityId]: prevUserLists[activityId].filter(
+            (user) => user.id !== userId
+          ),
         }));
         alert("User removed successfully");
       } else {
@@ -159,10 +176,11 @@ const Activities = () => {
       console.error("Error removing user:", error);
     }
   };
-
+  // we used chat gpt helps for this
   const renderUserList = (activityId) => {
     const users = userLists[activityId] || [];
-    const numPeople = activities.find(act => act.id === activityId)?.num_people || 0;
+    const numPeople =
+      activities.find((act) => act.id === activityId)?.num_people || 0;
     const userItems = [];
 
     for (let i = 0; i < numPeople; i++) {
@@ -177,7 +195,10 @@ const Activities = () => {
           />
           <span>{user ? user.username : "Empty"}</span>
           {user && (
-            <button className="remove-button" onClick={() => handleRemoveUser(user.id, activityId)}>
+            <button
+              className="remove-button"
+              onClick={() => handleRemoveUser(user.id, activityId)}
+            >
               X
             </button>
           )}
@@ -188,23 +209,26 @@ const Activities = () => {
     return (
       <div className="user-list-popup" key={activityId}>
         <h3 className="popup-header">Users Joined</h3>
-        <button className="close-button" onClick={() => handleUserListClose(activityId)}>X</button>
-        <div className="request-list-content">
-          {userItems}
-        </div>
+        <button
+          className="close-button"
+          onClick={() => handleUserListClose(activityId)}
+        >
+          X
+        </button>
+        <div className="request-list-content">{userItems}</div>
       </div>
     );
   };
 
   const handleUserListClick = (activityId) => {
     if (!visibleUserLists.includes(activityId)) {
-      setVisibleUserLists(prev => [...prev, activityId]);
+      setVisibleUserLists((prev) => [...prev, activityId]);
     }
     fetchUsersForActivity(activityId);
   };
 
   const handleUserListClose = (activityId) => {
-    setVisibleUserLists(prev => prev.filter(id => id !== activityId));
+    setVisibleUserLists((prev) => prev.filter((id) => id !== activityId));
   };
 
   useEffect(() => {
@@ -212,6 +236,7 @@ const Activities = () => {
       const url = showMyActivities ? "/api/my-activities" : "/api/activities";
       const token = localStorage.getItem("token");
 
+      // we used chat gpt helps for this
       try {
         const [activitiesResponse, slotsResponse] = await Promise.all([
           fetch(url, {
@@ -226,11 +251,14 @@ const Activities = () => {
           const activitiesData = await activitiesResponse.json();
           const activitiesWithMapUrls = await Promise.all(
             activitiesData.map(async (activity) => {
-              const hostResponse = await fetch(`/api/profile/${activity.user_id_host}`, {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              });
+              const hostResponse = await fetch(
+                `/api/profile/${activity.user_id_host}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
               const hostData = await hostResponse.json();
               return {
                 ...activity,
@@ -244,12 +272,12 @@ const Activities = () => {
           setActivities(activitiesWithMapUrls);
 
           // Match activities with user activity slots
-          const matchedActivities = activitiesWithMapUrls.map(activity => {
+          const matchedActivities = activitiesWithMapUrls.map((activity) => {
             const isJoined = Object.values(slotsResponse).includes(activity.id);
             return {
               ...activity,
               isJoined,
-              isFull: activity.num_people_joined >= activity.num_people
+              isFull: activity.num_people_joined >= activity.num_people,
             };
           });
           setActivities(matchedActivities);
@@ -347,7 +375,7 @@ const Activities = () => {
         return;
       }
 
-      if (userActivities.filter(id => id !== null).length >= 10) {
+      if (userActivities.filter((id) => id !== null).length >= 10) {
         alert("You have joined too many activities!");
         return;
       }
@@ -476,14 +504,22 @@ const Activities = () => {
     setSortOrder(e.target.value);
   };
 
+  const handleCategoryFilterChange = (e) => {
+    setCategoryFilter(e.target.value);
+  };
+
   const handleEditClick = (activity) => {
     navigate("/CreateActivity", { state: { activity } });
   };
 
-  const filteredActivities = activities.filter((activity) =>
-    activity.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
+  const filteredActivities = activities
+    .filter((activity) =>
+      activity.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((activity) =>
+      categoryFilter ? activity.category === categoryFilter : true
+    );
+  // we used chat gpt helps for this
   const sortedActivities = [...filteredActivities].sort((a, b) => {
     const dateA = new Date(a.act_date);
     const dateB = new Date(b.act_date);
@@ -491,54 +527,72 @@ const Activities = () => {
   });
 
   return (
-    <div className="activities-container">
-      <img
-        src={profilePhoto}
-        alt="Profile"
-        className="Profile"
-        onClick={() => handleProfileClick(currentUserId)}
-      />
-      <div className="top-button">
-        <button
-          className="button button-link"
-          onClick={handleRequestListClick}
-        >
-          Request List
-        </button>
-        <button
-          className="button button-link"
-          onClick={handleMyActivitiesClick}
-        >
-          {showMyActivities ? "All Activities" : "My Activities"}
-        </button>
-        <button
-          className="button button-link"
-          onClick={handleCreateActivityClick}
-        >
-          Create an Activity
-        </button>
-      </div>
-      <div className="search-sort-container">
-        <div className="search-bar">
-          <input
-            type="text"
-            placeholder="Search by title..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-          />
+    <div className="activities">
+      <div className="activities-header">
+        <img
+          src={profilePhoto}
+          alt="Profile"
+          className="Profile"
+          onClick={() => handleProfileClick(currentUserId)}
+        />
+        <div className="search-sort-container">
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Search by title..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </div>
+          <div className="sort-order">
+            <label htmlFor="sortOrder">Sort by date: </label>
+            <select
+              id="sortOrder"
+              value={sortOrder}
+              onChange={handleSortOrderChange}
+            >
+              <option value="asc">Earliest to Latest</option>
+              <option value="desc">Latest to Earliest</option>
+            </select>
+          </div>
+          <div className="sort-order">
+            <label htmlFor="categoryFilter">Filter by category: </label>
+            <select
+              id="categoryFilter"
+              value={categoryFilter}
+              onChange={handleCategoryFilterChange}
+            >
+              <option value="">All Categories</option>
+              {categories.map((category, index) => (
+                <option key={index} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="sort-order">
-          <label htmlFor="sortOrder">Sort by date: </label>
-          <select
-            id="sortOrder"
-            value={sortOrder}
-            onChange={handleSortOrderChange}
+        <div className="top-button">
+          <button
+            className="button button-link"
+            onClick={handleMyActivitiesClick}
           >
-            <option value="asc">Earliest to Latest</option>
-            <option value="desc">Latest to Earliest</option>
-          </select>
+            {showMyActivities ? "All Activities" : "My Activities"}
+          </button>
+          <button
+            className="button button-link"
+            onClick={handleCreateActivityClick}
+          >
+            Create an Activity
+          </button>
+          <button
+            className="button button-link"
+            onClick={handleRequestListClick}
+          >
+            Request List
+          </button>
         </div>
       </div>
+
       {showRequests && (
         <div className="request-list">
           <h3>Requests</h3>
@@ -554,7 +608,10 @@ const Activities = () => {
                     className="requester-image"
                     onClick={() => handleProfileClick(request.requester_id)}
                   />
-                  <span>{request.username} would like to join your activity, {request.activity_title}!</span>
+                  <span>
+                    {request.username} would like to join your activity,{" "}
+                    {request.activity_title}!
+                  </span>
                   <button
                     className="accept-button"
                     onClick={() => handleAcceptRequest(request.id)}
@@ -576,93 +633,119 @@ const Activities = () => {
       <div className="activities-list">
         {sortedActivities.map((activity) => (
           <div key={activity.id} className="activity-block">
-            <img
-              onClick={() =>
-                handleProfileClick(
-                  activity.user_id_host === currentUserId ? "" : activity.user_id_host
-                )
-              }
-              src={activity.profile_photo || "/Avatar.png"}
-              alt={activity.title}
-              className="activity-image"
-            />
-            <h3 className="activity-title">{activity.title}</h3>
-            <p className="activity-description">{activity.act_desc}</p>
-            <p className="activity-date-time">
-              <span>Date: {formatDate(activity.act_date)}</span>
-              <br />
-              <span>Time: {activity.act_time}</span>
-              <br />
-              <span>
-                Location:{" "}
-                <a
-                  href={activity.mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="maps-link"
-                >
-                  {activity.location}
-                </a>
-              </span>
-              <br />
-              <span>
-                People: {activity.num_people_joined} / {activity.num_people}
-              </span>
-            </p>
-            {!showMyActivities && (
-              <>
-                {String(activity.user_id_host) === currentUserId ? (
-                  <button className="button joined-button" disabled>
-                    Joined
-                  </button>
-                ) : activity.isJoined ? (
-                  <button className="button joined-button" disabled>
-                    Joined
-                  </button>
-                ) : activity.isFull ? (
-                  <button className="button full-button" disabled>
-                    Full
-                  </button>
-                ) : requestedActivities.includes(activity.id) ? (
-                  <button className="button requested-button" disabled>
-                    Requested
-                  </button>
-                ) : (
+            <div className="activity-header">
+              <img
+                onClick={() =>
+                  handleProfileClick(
+                    activity.user_id_host === currentUserId
+                      ? ""
+                      : activity.user_id_host
+                  )
+                }
+                src={activity.profile_photo || "/Avatar.png"}
+                alt={activity.title}
+                className="activity-image"
+              />
+              {!showMyActivities && (
+                <>
+                  {String(activity.user_id_host) === currentUserId ? (
+                    <button className="button joined-button" disabled>
+                      Joined
+                    </button>
+                  ) : activity.isJoined ? (
+                    <button className="button joined-button" disabled>
+                      Joined
+                    </button>
+                  ) : activity.isFull ? (
+                    <button className="button full-button" disabled>
+                      Full
+                    </button>
+                  ) : requestedActivities.includes(activity.id) ? (
+                    <button className="button requested-button" disabled>
+                      Requested
+                    </button>
+                  ) : (
+                    <button
+                      className="button join-button"
+                      onClick={() => handleJoinClick(activity)}
+                    >
+                      Join
+                    </button>
+                  )}
+                </>
+              )}
+              {showMyActivities && (
+                <div className="button-container">
                   <button
-                    className="button join-button"
-                    onClick={() => handleJoinClick(activity)}
+                    className="button delete-button"
+                    onClick={() => handleDeleteClick(activity.id)}
                   >
-                    Join
+                    Delete
                   </button>
+                  <button
+                    className="button edit-button"
+                    onClick={() => handleEditClick(activity)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="button users-button"
+                    onClick={() => handleUserListClick(activity.id)}
+                  >
+                    Users
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="activity-details">
+              <h3 className="activity-title">{activity.title}</h3>
+              <p className="activity-description">{activity.act_desc}</p>
+              <hr className="separator-line" />
+              <p className="activity-credentials">
+                <span>Category: {activity.category}</span>
+                <br />
+                {String(activity.user_id_host) === currentUserId ||
+                activity.isJoined ? (
+                  <>
+                    <span>Date: {formatDate(activity.act_date)}</span>
+                    <br />
+                    <span>Time: {activity.act_time}</span>
+                    <br />
+                    <span>
+                      Location:{" "}
+                      <a
+                        href={activity.mapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="maps-link"
+                      >
+                        {activity.location}
+                      </a>
+                    </span>
+                    <br />
+                  </>
+                ) : (
+                  <>
+                    <span>
+                      Ongoing until: {formatDate(activity.ongoing_until)}
+                    </span>
+                    <br />
+                  </>
                 )}
-              </>
-            )}
-            {showMyActivities && (
-              <div className="button-container">
-                <button
-                  className="button delete-button"
-                  onClick={() => handleDeleteClick(activity.id)}
-                >
-                  Delete
-                </button>
-                <button
-                  className="button edit-button"
-                  onClick={() => handleEditClick(activity)}
-                >
-                  Edit
-                </button>
-                <button
-                  className="button users-button"
-                  onClick={() => handleUserListClick(activity.id)}
-                >
-                  Users
-                </button>
-              </div>
-            )}
-            {visibleUserLists.includes(activity.id) && renderUserList(activity.id)}
+                <span>
+                  People: {activity.num_people_joined} / {activity.num_people}
+                </span>
+              </p>
+            </div>
+
+            {visibleUserLists.includes(activity.id) &&
+              renderUserList(activity.id)}
           </div>
         ))}
       </div>
+      <button className="return-button" onClick={() => navigate("/home")}>
+        Return
+      </button>
     </div>
   );
 };
