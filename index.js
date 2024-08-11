@@ -11,7 +11,7 @@ const multer = require("multer");
 const multerS3 = require("multer-s3");
 const emailjs = require("emailjs-com");
 const crypto = require("crypto");
-const cron = require('node-cron');
+const cron = require("node-cron");
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -91,13 +91,32 @@ app.post(
 
 // Endpoint to create a new activity
 app.post("/api/activities", authenticateToken, async (req, res) => {
-  const { title, act_desc, location, act_date, act_time, num_people, ongoing_until, category } = req.body;
+  const {
+    title,
+    act_desc,
+    location,
+    act_date,
+    act_time,
+    num_people,
+    ongoing_until,
+    category,
+  } = req.body;
   const userId = req.user.userId;
 
   try {
     const result = await db.query(
       "INSERT INTO activity (title, act_desc, act_date, act_time, location, user_id_host, num_people, ongoing_until, category) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
-      [title, act_desc, act_date, act_time, location, userId, num_people, ongoing_until, category]
+      [
+        title,
+        act_desc,
+        act_date,
+        act_time,
+        location,
+        userId,
+        num_people,
+        ongoing_until,
+        category,
+      ]
     );
 
     res.status(201).json(result.rows[0]);
@@ -404,7 +423,15 @@ app.get("/api/users", async (req, res) => {
 // Endpoint to update an activity
 app.put("/api/activities/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
-  const { title, act_desc, location, act_date, act_time, category, ongoing_until } = req.body;
+  const {
+    title,
+    act_desc,
+    location,
+    act_date,
+    act_time,
+    category,
+    ongoing_until,
+  } = req.body;
   const userId = req.user.userId;
 
   try {
@@ -423,7 +450,16 @@ app.put("/api/activities/:id", authenticateToken, async (req, res) => {
     // Update the activity
     await db.query(
       "UPDATE activity SET title = $1, act_desc = $2, location = $3, act_date = $4, act_time = $5, category = $6, ongoing_until = $7 WHERE id = $8",
-      [title, act_desc, location, act_date, act_time, category, ongoing_until, id]
+      [
+        title,
+        act_desc,
+        location,
+        act_date,
+        act_time,
+        category,
+        ongoing_until,
+        id,
+      ]
     );
 
     res.status(200).json({ message: "Activity updated successfully" });
@@ -553,7 +589,7 @@ app.put("/api/join-request/:id", authenticateToken, async (req, res) => {
   }
 });
 
-// Endpoint to fetch pending join requests for the current user
+// Endpoint to fetch pending join requests for the current user (we used chat gpt helps here)
 app.get(
   "/api/user-pending-requests/:userId",
   authenticateToken,
@@ -576,7 +612,7 @@ app.get(
   }
 );
 
-// Accept Join Request Endpoint
+// Accept Join Request Endpoint (we used chat gpt helps here)
 app.post(
   "/api/join-requests/:id/accept",
   authenticateToken,
@@ -713,7 +749,7 @@ app.get(
   }
 );
 
-// Endpoint to remove a user from an activity
+// Endpoint to remove a user from an activity (we used chat gpt helps here)
 app.delete(
   "/api/remove-user/:activityId/:userId",
   authenticateToken,
@@ -843,12 +879,13 @@ app.get("/api/chat-users", authenticateToken, async (req, res) => {
         [targetUserId]
       );
 
-
-      if (targetUserResult.rows.length > 0 && !result.rows.some(user => user.id === parseInt(targetUserId))) {
+      if (
+        targetUserResult.rows.length > 0 &&
+        !result.rows.some((user) => user.id === parseInt(targetUserId))
+      ) {
         result.rows.push(targetUserResult.rows[0]);
       }
     }
-
 
     res.status(200).json(result.rows);
   } catch (err) {
@@ -857,7 +894,7 @@ app.get("/api/chat-users", authenticateToken, async (req, res) => {
   }
 });
 
-// Endpoint to check if the email exists and send reset email
+// Endpoint to check if the email exists and send reset email (we used chat gpt helps here)
 app.post("/api/check-email", async (req, res) => {
   const { email } = req.body;
 
@@ -915,7 +952,7 @@ app.get("/api/validate-token", async (req, res) => {
   }
 });
 
-// Endpoint to reset password
+// Endpoint to reset password (we used chat gpt helps here)
 app.post("/api/reset-password", async (req, res) => {
   const { token, password } = req.body;
 
@@ -962,7 +999,7 @@ app.post("/api/update-activity-status", async (req, res) => {
     // Update activities that are past their scheduled date and time to 'done'
     await db.query(
       "UPDATE activity SET act_status = 'done' WHERE act_date < $1 OR (act_date = $1 AND act_time <= $2)",
-      [now.toISOString().split('T')[0], now.toTimeString().split(' ')[0]]
+      [now.toISOString().split("T")[0], now.toTimeString().split(" ")[0]]
     );
 
     res.status(200).json({ message: "Activity statuses updated successfully" });
@@ -972,26 +1009,26 @@ app.post("/api/update-activity-status", async (req, res) => {
   }
 });
 
-// Cron job to automatically update activity statuses every 30 seconds
-cron.schedule('*/30 * * * * *', async () => {
+// Cron job to automatically update activity statuses every 30 seconds (with chat gpt helps)
+cron.schedule("*/30 * * * * *", async () => {
   try {
     const now = new Date();
     const result = await db.query(
       "UPDATE activity SET act_status = 'done' WHERE act_date < $1 OR (act_date = $1 AND act_time <= $2) RETURNING id",
-      [now.toISOString().split('T')[0], now.toTimeString().split(' ')[0]]
+      [now.toISOString().split("T")[0], now.toTimeString().split(" ")[0]]
     );
 
-    const doneActivityIds = result.rows.map(row => row.id);
+    const doneActivityIds = result.rows.map((row) => row.id);
 
     if (doneActivityIds.length > 0) {
       await clearUserActivitySlots(doneActivityIds);
     }
-
   } catch (err) {
     console.error("Error updating activity statuses:", err);
   }
 });
 
+// we used chat gpt helps here
 async function clearUserActivitySlots(doneActivityIds) {
   try {
     const users = await db.query("SELECT * FROM user_profile");
@@ -1012,7 +1049,9 @@ async function clearUserActivitySlots(doneActivityIds) {
 
       if (updateRequired) {
         updates.push(`activities_joined = ${activitiesJoined}`);
-        const updateQuery = `UPDATE user_profile SET ${updates.join(', ')} WHERE id = ${user.id}`;
+        const updateQuery = `UPDATE user_profile SET ${updates.join(
+          ", "
+        )} WHERE id = ${user.id}`;
         await db.query(updateQuery);
       }
     }

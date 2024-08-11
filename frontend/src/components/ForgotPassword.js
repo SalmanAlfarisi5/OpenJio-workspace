@@ -10,6 +10,7 @@ const ForgotPassword = () => {
     setEmail(e.target.value);
   };
 
+  // we used chat gpt helps for this
   const handleSubmit = async (e) => {
     e.preventDefault();
 

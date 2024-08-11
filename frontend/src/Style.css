@@ -120,6 +120,7 @@
     height: 80px;
     border-radius: 50%;
     border: 2px solid #ffd700;
+    cursor: pointer;
 }
 
 .search-sort-container {
@@ -207,6 +208,7 @@
     object-fit: cover;
     border-radius: 50%;
     border: 2px solid #ffc107;
+    cursor: pointer;
 }
 
 .activity-header {
@@ -519,23 +521,29 @@
 }
 
 .message {
+
     margin-bottom: 10px;
-<<<<<<< Updated upstream
-=======
     padding: 10px;
     border-radius: 10px;
     position: relative;
     max-width: 50%;
+    /* Set a max-width to prevent overly wide bubbles */
     word-wrap: break-word;
->>>>>>> Stashed changes
+    /* Ensure long words break and don't overflow */
 }
 
 .sent {
-    text-align: right;
+    background-color: #007bff;
+    color: #fff;
+    margin-left: auto;
+    border-top-right-radius: 0;
 }
 
 .received {
-    text-align: left;
+    background-color: #f1f0f0;
+    color: #000;
+    margin-right: auto;
+    border-top-left-radius: 0;
 }
 
 .message-time {
@@ -902,7 +910,19 @@ p {
     color: white;
 }
 
+
+.remember-checkbox {
+    margin-right: 5px;
+
+}
+
+.remember-label {
+    margin-right: 10px;
+}
+
+
 .forgot-password-text {
+    margin-left: auto;
     color: #7c5dfa;
     text-decoration: none;
 }
@@ -947,8 +967,8 @@ h2 {
 
 label {
     display: block;
-    margin-bottom: 5px;
     color: #333;
+    margin-bottom: 4px;
 }
 
 input[type="email2"] {
