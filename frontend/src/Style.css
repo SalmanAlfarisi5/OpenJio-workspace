@@ -454,6 +454,7 @@
 
 .return-button {
     text-align: center;
+    margin: 20px auto;
     background: none;
     color: white;
     cursor: pointer;
@@ -464,6 +465,7 @@
     border-radius: 15px;
     z-index: 1;
 }
+
 
 .return-button:hover {
     background-color: rgba(255, 255, 255, 0.2);
@@ -1042,4 +1044,34 @@ select {
     color: black;
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 4px;
+}
+
+.ForumCategories {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.BlockCategories {
+    background-color: #272744;
+    border-radius: 10px;
+    text-align: center;
+    margin-top: 100px;
+    width: 70%;
+    height: 80%;
+}
+
+.Categories {
+    background-color: #5d5dc2;
+    padding: 20px;
+    margin: 30px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.Categories:hover {
+    background-color: rgba(60, 60, 107, 0.3);
 }

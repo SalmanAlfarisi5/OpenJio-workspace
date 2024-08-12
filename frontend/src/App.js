@@ -15,7 +15,8 @@ import CreateActivity from "./components/CreateActivity";
 import Forum from "./components/Forum";
 import Chat from "./components/Chat";
 import ForgotPassword from "./components/ForgotPassword";
-import ResetPassword from "./components/ResetPassword"; 
+import ResetPassword from "./components/ResetPassword";
+import ForumCtegories from "./components/ForumCategories";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -31,7 +32,10 @@ const Home = () => {
           <button className="button" onClick={() => navigate("/activities")}>
             Activities
           </button>
-          <button className="button" onClick={() => navigate("/forum")}>
+          <button
+            className="button"
+            onClick={() => navigate("/ForumCategories")}
+          >
             Forum
           </button>
           <button className="button" onClick={() => navigate("/chat")}>
@@ -64,7 +68,8 @@ const App = () => {
         <Route path="/createactivity" element={<CreateActivity />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} /> 
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/ForumCategories" element={<ForumCtegories />} />
       </Routes>
     </Router>
   );
