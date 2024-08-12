@@ -115,6 +115,10 @@ const Chat = () => {
   return (
     <div className="chat-container">
       <div className="user-list">
+        <button className="return-button" onClick={() => navigate("/home")}>
+          return
+        </button>
+        <hr></hr>
         {users
           .filter((user) => user.id !== currentUser)
           .map((user) => (
@@ -127,9 +131,6 @@ const Chat = () => {
               <span>{user.username}</span>
             </div>
           ))}
-        <button className="return-button" onClick={() => navigate("/home")}>
-          return
-        </button>
       </div>
       <div className="chat-window">
         {selectedUser ? (
