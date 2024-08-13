@@ -868,13 +868,13 @@ app.post(
 // FORUM ENDPOINTS
 // Create a new comment
 app.post("/api/comments", authenticateToken, async (req, res) => {
-  const { content } = req.body;
+  const { content, tag } = req.body;
   const userId = req.user.userId;
 
   try {
     const result = await db.query(
-      "INSERT INTO comments (user_id, content) VALUES ($1, $2) RETURNING *",
-      [userId, content]
+      "INSERT INTO comments (user_id, content, tag) VALUES ($1, $2, $3) RETURNING *",
+      [userId, content, tag]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -882,6 +882,7 @@ app.post("/api/comments", authenticateToken, async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
 
 // Create a reply to a comment
 app.post(
@@ -905,12 +906,26 @@ app.post(
   }
 );
 
-// Get all comments with their replies
+// Get all comments with their replies, optionally filtered by tag
 app.get("/api/comments", async (req, res) => {
+  const { tag } = req.query;
+
   try {
-    const commentsResult = await db.query(
-      "SELECT c.id, c.content, c.created_at, u.username FROM comments c JOIN user_login u ON c.user_id = u.id ORDER BY c.created_at DESC"
-    );
+    let commentsQuery = `
+      SELECT c.id, c.content, c.created_at, u.username
+      FROM comments c
+      JOIN user_login u ON c.user_id = u.id
+    `;
+
+    if (tag) {
+      commentsQuery += " WHERE c.tag = $1";
+    }
+
+    commentsQuery += " ORDER BY c.created_at DESC";
+
+    const commentsResult = tag
+      ? await db.query(commentsQuery, [tag])
+      : await db.query(commentsQuery);
 
     const comments = commentsResult.rows;
 

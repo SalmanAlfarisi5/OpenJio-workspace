@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import "../Style.css";
 
@@ -9,19 +9,21 @@ const Forum = () => {
   const [replyContent, setReplyContent] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const categoryTitle = location.state?.displayName || "Forum"; // This will change "Forum" to the category name
 
-  useEffect(() => {
-    fetchComments();
-  }, []);
-
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
-      const response = await axios.get("/api/comments");
+      const response = await axios.get(`/api/comments?tag=${categoryTitle}`);
       setComments(response.data);
     } catch (error) {
       console.error("Error fetching comments:", error);
     }
-  };
+  }, [categoryTitle]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
@@ -33,7 +35,7 @@ const Forum = () => {
       const token = localStorage.getItem("token");
       await axios.post(
         "/api/comments",
-        { content: newComment },
+        { content: newComment, tag: categoryTitle },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setNewComment("");
@@ -66,7 +68,7 @@ const Forum = () => {
   return (
     <div className="Forum-page">
       <div className="Forum-container">
-        <h1>Forum</h1>
+        <h1>{categoryTitle}</h1> {/* This will now dynamically display the category title */}
         <div className="comments-section">
           {comments.map((comment) => (
             <div key={comment.id} className="comment">
@@ -112,8 +114,8 @@ const Forum = () => {
           />
           <button type="submit">Post Comment</button>
         </form>
-        <button className="return-button" onClick={() => navigate("/home")}>
-          return
+        <button className="return-button" onClick={() => navigate("/forum-categories")}>
+          Return
         </button>
       </div>
     </div>

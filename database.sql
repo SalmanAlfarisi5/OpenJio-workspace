@@ -48,6 +48,7 @@ CREATE TABLE comments (
     user_id INT,
     FOREIGN KEY (user_id) REFERENCES user_login(id),
     content TEXT,
+	tag TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
