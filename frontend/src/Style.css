@@ -518,7 +518,6 @@
 }
 
 .message {
-
     margin-bottom: 10px;
     padding: 10px;
     border-radius: 10px;
@@ -580,6 +579,63 @@
     padding: 20px;
     text-align: center;
     color: #888;
+}
+
+/* New CSS for image handling */
+.chat-image {
+    max-width: 200px; /* Limit the width of the image */
+    max-height: 200px; /* Limit the height of the image */
+    border-radius: 5px;
+    cursor: pointer; /* Change cursor to indicate the image is clickable */
+}
+
+.chat-image:hover {
+    opacity: 0.8; /* Add a hover effect to indicate interactivity */
+}
+
+/* Modal styling for full-size image view */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.9); /* Black background with opacity */
+}
+
+.modal-content {
+    margin: 15% auto; /* 15% from the top and centered */
+    display: block;
+    width: 80%; /* Max width */
+    max-width: 700px;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 25px;
+    color: #fff;
+    font-size: 35px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.date-separator {
+    text-align: center;
+    margin: 20px 0;
+    color: #888;
+    font-weight: bold;
+    border-top: 1px solid #888;
+    padding-top: 10px;
 }
 
 .Forum-page {

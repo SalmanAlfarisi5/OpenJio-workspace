@@ -48,6 +48,7 @@ CREATE TABLE comments (
     user_id INT,
     FOREIGN KEY (user_id) REFERENCES user_login(id),
     content TEXT,
+	tag TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -76,7 +77,8 @@ CREATE TABLE messages (
 	from_user INT,
 	to_user INT,
 	content TEXT,
-	timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
+	timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+	message_date DATE DEFAULT CURRENT_DATE
 );
 
 CREATE TABLE password_resets (

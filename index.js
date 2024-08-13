@@ -23,240 +23,726 @@ if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "frontend/build")));
 }
 
-// Configure AWS S3
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-// Configure multer to use S3 for storage
-const upload = multer({
-  storage: multerS3({
-    s3: s3Client,
-    bucket: process.env.AWS_BUCKET_NAME,
-    metadata: (req, file, cb) => {
-      cb(null, { fieldName: file.fieldname });
+// MIDDLEWARES
+  // Configure AWS S3
+  const s3Client = new S3Client({
+    region: process.env.AWS_REGION,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     },
-    key: (req, file, cb) => {
-      cb(null, Date.now().toString() + path.extname(file.originalname));
-    },
-  }),
-});
-
-// Middleware to authenticate JWT tokens
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-
-  if (!token) {
-    return res.sendStatus(401);
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.sendStatus(403);
-    }
-    req.user = user;
-    next();
   });
-};
 
-// Endpoint to upload profile photo
-app.post(
-  "/api/upload",
-  authenticateToken,
-  upload.single("profile_photo"),
-  async (req, res) => {
-    const userId = req.user.userId;
-    const profilePhotoUrl = req.file.location;
+  // Configure multer to use S3 for storage
+  const upload = multer({
+    storage: multerS3({
+      s3: s3Client,
+      bucket: process.env.AWS_BUCKET_NAME,
+      metadata: (req, file, cb) => {
+        cb(null, { fieldName: file.fieldname });
+      },
+      key: (req, file, cb) => {
+        cb(null, Date.now().toString() + path.extname(file.originalname));
+      },
+    }),
+  });
 
-    try {
-      await db.query(
-        "UPDATE user_profile SET profile_photo = $1 WHERE user_id = $2",
-        [profilePhotoUrl, userId]
-      );
-      res.status(200).json({
-        message: "Profile photo updated successfully",
-        profile_photo: profilePhotoUrl,
-      });
-    } catch (err) {
-      console.error("Error uploading profile photo:", err);
-      res.status(500).send("Server error");
+  // Middleware to authenticate JWT tokens
+  const authenticateToken = (req, res, next) => {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.sendStatus(401);
     }
-  }
-);
 
-// Endpoint to create a new activity
-app.post("/api/activities", authenticateToken, async (req, res) => {
-  const {
-    title,
-    act_desc,
-    location,
-    act_date,
-    act_time,
-    num_people,
-    ongoing_until,
-    category,
-  } = req.body;
-  const userId = req.user.userId;
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+        return res.sendStatus(403);
+      }
+      req.user = user;
+      next();
+    });
+  };
 
-  try {
-    const result = await db.query(
-      "INSERT INTO activity (title, act_desc, act_date, act_time, location, user_id_host, num_people, ongoing_until, category) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
-      [
+// LOGIN ENDPOINTS
+  // - LOGIN AND REGISTER -
+    // Endpoint to register a new user
+    app.post("/api/register", async (req, res) => {
+      const { email, fullname, username, password } = req.body;
+
+      try {
+        await db.query("BEGIN");
+
+        const passwordHash = await bcrypt.hash(password, 10);
+
+        const userLoginResult = await db.query(
+          "INSERT INTO user_login (email, username, password_hash) VALUES ($1, $2, $3) RETURNING id",
+          [email, username, passwordHash]
+        );
+        const userId = userLoginResult.rows[0].id;
+
+        await db.query(
+          "INSERT INTO user_profile (user_id, real_name) VALUES ($1, $2)",
+          [userId, fullname]
+        );
+
+        await db.query("COMMIT");
+
+        res.json({ message: "Registration successful" });
+      } catch (err) {
+        await db.query("ROLLBACK");
+        console.error("Error during registration:", err);
+        res.status(500).send("Server error");
+      }
+    });
+
+    // Endpoint to log in a user
+    app.post("/api/login", async (req, res) => {
+      const { username, password } = req.body;
+
+      try {
+        const userResult = await db.query(
+          "SELECT * FROM user_login WHERE username = $1",
+          [username]
+        );
+        if (userResult.rows.length === 0) {
+          return res.status(400).json({ error: "Invalid username or password" });
+        }
+
+        const user = userResult.rows[0];
+
+        const isMatch = await bcrypt.compare(password, user.password_hash);
+        if (!isMatch) {
+          return res.status(400).json({ error: "Invalid username or password" });
+        }
+
+        // Include the username in the JWT payload
+        const token = jwt.sign(
+          { userId: user.id, username: user.username },
+          process.env.JWT_SECRET,
+          {
+            expiresIn: "1h",
+          }
+        );
+
+        res.json({
+          message: "Login successful",
+          token,
+          username: user.username,
+          email: user.email,
+          id: user.id,
+        });
+      } catch (err) {
+        console.error("Error during login:", err);
+        res.status(500).send("Server error");
+      }
+    });
+
+  // - FORGET PASSWORD -
+    // Endpoint to check if the email exists and send reset email (we used chat gpt helps here)
+    app.post("/api/check-email", async (req, res) => {
+      const { email } = req.body;
+
+      try {
+        // Check if the email exists in the user_login table
+        const result = await db.query("SELECT * FROM user_login WHERE email = $1", [
+          email,
+        ]);
+
+        if (result.rows.length === 0) {
+          return res.status(404).json({ error: "Email not found" });
+        }
+
+        const user = result.rows[0];
+        const token = crypto.randomBytes(32).toString("hex");
+        const expiresAt = new Date(Date.now() + 3600000); // Token valid for 1 hour
+
+        await db.query(
+          "INSERT INTO password_resets (user_id, token, expires_at) VALUES ($1, $2, $3)",
+          [user.id, token, expiresAt]
+        );
+
+        const resetLink = `${process.env.BASE_URL}/reset-password?token=${token}`;
+
+        res
+          .status(200)
+          .json({ message: "Email verification successful", resetLink });
+      } catch (error) {
+        console.error("Error checking email:", error);
+        res.status(500).json({ error: "Server error" });
+      }
+    });
+
+    // Endpoint to validate token
+    app.get("/api/validate-token", async (req, res) => {
+      const { token } = req.query;
+
+      try {
+        const result = await db.query(
+          "SELECT * FROM password_resets WHERE token = $1",
+          [token]
+        );
+
+        if (
+          result.rows.length === 0 ||
+          new Date(result.rows[0].expires_at) < new Date()
+        ) {
+          return res.status(400).json({ error: "Invalid or expired token" });
+        }
+
+        res.status(200).json({ valid: true });
+      } catch (err) {
+        console.error("Error validating token:", err);
+        res.status(500).json({ error: "Server error" });
+      }
+    });
+
+    // Endpoint to reset password (we used chat gpt helps here)
+    app.post("/api/reset-password", async (req, res) => {
+      const { token, password } = req.body;
+
+      if (!token || !password) {
+        return res.status(400).json({ error: "Token and password are required" });
+      }
+
+      try {
+        const result = await db.query(
+          "SELECT * FROM password_resets WHERE token = $1",
+          [token]
+        );
+
+        if (result.rows.length === 0) {
+          return res.status(400).json({ error: "Invalid or expired token" });
+        }
+
+        const resetRequest = result.rows[0];
+
+        if (resetRequest.expires_at < new Date()) {
+          return res.status(400).json({ error: "Token has expired" });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        await db.query("UPDATE user_login SET password_hash = $1 WHERE id = $2", [
+          hashedPassword,
+          resetRequest.user_id,
+        ]);
+        await db.query("DELETE FROM password_resets WHERE token = $1", [token]);
+
+        res.status(200).json({ message: "Password reset successful" });
+      } catch (error) {
+        console.error("Error resetting password:", error);
+        res.status(500).json({ error: "Server error" });
+      }
+    });
+
+// ACTIVITY ENDPOINTS
+  // - ACTIVITY -
+    // Endpoint to create a new activity
+    app.post("/api/activities", authenticateToken, async (req, res) => {
+      const {
         title,
         act_desc,
+        location,
         act_date,
         act_time,
-        location,
-        userId,
         num_people,
         ongoing_until,
         category,
-      ]
-    );
+      } = req.body;
+      const userId = req.user.userId;
 
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error("Error creating activity:", err);
-    res.status(500).send("Server error");
-  }
-});
+      try {
+        const result = await db.query(
+          "INSERT INTO activity (title, act_desc, act_date, act_time, location, user_id_host, num_people, ongoing_until, category) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+          [
+            title,
+            act_desc,
+            act_date,
+            act_time,
+            location,
+            userId,
+            num_people,
+            ongoing_until,
+            category,
+          ]
+        );
 
-// Endpoint to fetch all activities
-app.get("/api/activities", async (req, res) => {
-  try {
-    const result = await db.query(`
-      SELECT a.*, up.profile_photo 
-      FROM activity a 
-      JOIN user_profile up ON a.user_id_host = up.user_id
-      WHERE a.act_status != 'done'
-    `);
-    res.status(200).json(result.rows);
-  } catch (err) {
-    console.error("Error fetching activities:", err);
-    res.status(500).send("Server error");
-  }
-});
+        res.status(201).json(result.rows[0]);
+      } catch (err) {
+        console.error("Error creating activity:", err);
+        res.status(500).send("Server error");
+      }
+    });
 
-// Endpoint to register a new user
-app.post("/api/register", async (req, res) => {
-  const { email, fullname, username, password } = req.body;
+    // Endpoint to fetch all activities
+    app.get("/api/activities", async (req, res) => {
+      try {
+        const result = await db.query(`
+          SELECT a.*, up.profile_photo 
+          FROM activity a 
+          JOIN user_profile up ON a.user_id_host = up.user_id
+          WHERE a.act_status != 'done'
+        `);
+        res.status(200).json(result.rows);
+      } catch (err) {
+        console.error("Error fetching activities:", err);
+        res.status(500).send("Server error");
+      }
+    });
 
-  try {
-    await db.query("BEGIN");
+    // Endpoint to fetch activities by the logged-in user
+    app.get("/api/my-activities", authenticateToken, async (req, res) => {
+      try {
+        const userId = req.user.userId;
 
-    const passwordHash = await bcrypt.hash(password, 10);
+        const result = await db.query(
+          "SELECT * FROM activity WHERE user_id_host = $1 AND act_status != 'done'",
+          [userId]
+        );
+        res.status(200).json(result.rows);
+      } catch (err) {
+        console.error("Error fetching user's activities:", err);
+        res.status(500).send("Server error");
+      }
+    });
 
-    const userLoginResult = await db.query(
-      "INSERT INTO user_login (email, username, password_hash) VALUES ($1, $2, $3) RETURNING id",
-      [email, username, passwordHash]
-    );
-    const userId = userLoginResult.rows[0].id;
+    // Endpoint to delete an activity
+    app.delete("/api/activities/:id", authenticateToken, async (req, res) => {
+      const { id } = req.params;
+      const userId = req.user.userId;
 
-    await db.query(
-      "INSERT INTO user_profile (user_id, real_name) VALUES ($1, $2)",
-      [userId, fullname]
-    );
+      try {
+        // Check if the activity belongs to the logged-in user
+        const activityResult = await db.query(
+          "SELECT * FROM activity WHERE id = $1 AND user_id_host = $2",
+          [id, userId]
+        );
 
-    await db.query("COMMIT");
+        if (activityResult.rows.length === 0) {
+          return res
+            .status(404)
+            .json({ error: "Activity not found or not authorized" });
+        }
 
-    res.json({ message: "Registration successful" });
-  } catch (err) {
-    await db.query("ROLLBACK");
-    console.error("Error during registration:", err);
-    res.status(500).send("Server error");
-  }
-});
+        // Delete the activity
+        await db.query("DELETE FROM activity WHERE id = $1", [id]);
+        res.status(200).json({ message: "Activity deleted successfully" });
+      } catch (err) {
+        console.error("Error deleting activity:", err);
+        res.status(500).send("Server error");
+      }
+    });
 
-// Endpoint to fetch activities by the logged-in user
-app.get("/api/my-activities", authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.userId;
+    // Endpoint to get the current user's details including username and email
+    app.get("/api/user-details", authenticateToken, async (req, res) => {
+      try {
+        const userId = req.user.userId;
 
-    const result = await db.query(
-      "SELECT * FROM activity WHERE user_id_host = $1 AND act_status != 'done'",
-      [userId]
-    );
-    res.status(200).json(result.rows);
-  } catch (err) {
-    console.error("Error fetching user's activities:", err);
-    res.status(500).send("Server error");
-  }
-});
+        // Fetch current user's username and email
+        const userResult = await db.query(
+          "SELECT username, email FROM user_login WHERE id = $1",
+          [userId]
+        );
 
-// Endpoint to delete an activity
-app.delete("/api/activities/:id", authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  const userId = req.user.userId;
+        if (userResult.rows.length === 0) {
+          return res.status(404).json({ error: "User not found" });
+        }
 
-  try {
-    // Check if the activity belongs to the logged-in user
-    const activityResult = await db.query(
-      "SELECT * FROM activity WHERE id = $1 AND user_id_host = $2",
-      [id, userId]
-    );
+        const user = userResult.rows[0];
+        res.json({ username: user.username, email: user.email });
+      } catch (err) {
+        console.error("Error fetching user details:", err);
+        res.status(500).send("Server error");
+      }
+    });
 
-    if (activityResult.rows.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "Activity not found or not authorized" });
-    }
+    // Endpoint to fetch host's username and email based on activity's user_id_host
+    app.get(
+      "/api/activity-host/:activityId",
+      authenticateToken,
+      async (req, res) => {
+        try {
+          const { activityId } = req.params;
 
-    // Delete the activity
-    await db.query("DELETE FROM activity WHERE id = $1", [id]);
-    res.status(200).json({ message: "Activity deleted successfully" });
-  } catch (err) {
-    console.error("Error deleting activity:", err);
-    res.status(500).send("Server error");
-  }
-});
+          // Fetch activity details including host's user_id_host
+          const activityResult = await db.query(
+            "SELECT ul.username AS host_username, ul.email AS host_email " +
+              "FROM activity a " +
+              "JOIN user_login ul ON a.user_id_host = ul.id " +
+              "WHERE a.id = $1",
+            [activityId]
+          );
 
-// Endpoint to log in a user
-app.post("/api/login", async (req, res) => {
-  const { username, password } = req.body;
+          if (activityResult.rows.length === 0) {
+            return res.status(404).json({ error: "Activity not found" });
+          }
 
-  try {
-    const userResult = await db.query(
-      "SELECT * FROM user_login WHERE username = $1",
-      [username]
-    );
-    if (userResult.rows.length === 0) {
-      return res.status(400).json({ error: "Invalid username or password" });
-    }
-
-    const user = userResult.rows[0];
-
-    const isMatch = await bcrypt.compare(password, user.password_hash);
-    if (!isMatch) {
-      return res.status(400).json({ error: "Invalid username or password" });
-    }
-
-    // Include the username in the JWT payload
-    const token = jwt.sign(
-      { userId: user.id, username: user.username },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1h",
+          const activity = activityResult.rows[0];
+          res.json({
+            host_username: activity.host_username,
+            host_email: activity.host_email,
+          });
+        } catch (err) {
+          console.error("Error fetching host details:", err);
+          res.status(500).send("Server error");
+        }
       }
     );
 
-    res.json({
-      message: "Login successful",
-      token,
-      username: user.username,
-      email: user.email,
-      id: user.id,
+    // Endpoint to fetch all users (usernames and ids)
+    app.get("/api/users", async (req, res) => {
+      try {
+        const result = await db.query("SELECT id, username FROM user_login");
+        res.status(200).json(result.rows);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        res.status(500).send("Server error");
+      }
     });
-  } catch (err) {
-    console.error("Error during login:", err);
-    res.status(500).send("Server error");
-  }
-});
 
+    // Endpoint to update an activity
+    app.put("/api/activities/:id", authenticateToken, async (req, res) => {
+      const { id } = req.params;
+      const {
+        title,
+        act_desc,
+        location,
+        act_date,
+        act_time,
+        category,
+        ongoing_until,
+      } = req.body;
+      const userId = req.user.userId;
+
+      try {
+        // Check if the activity belongs to the logged-in user
+        const activityResult = await db.query(
+          "SELECT * FROM activity WHERE id = $1 AND user_id_host = $2",
+          [id, userId]
+        );
+
+        if (activityResult.rows.length === 0) {
+          return res
+            .status(404)
+            .json({ error: "Activity not found or not authorized" });
+        }
+
+        // Update the activity
+        await db.query(
+          "UPDATE activity SET title = $1, act_desc = $2, location = $3, act_date = $4, act_time = $5, category = $6, ongoing_until = $7 WHERE id = $8",
+          [
+            title,
+            act_desc,
+            location,
+            act_date,
+            act_time,
+            category,
+            ongoing_until,
+            id,
+          ]
+        );
+
+        res.status(200).json({ message: "Activity updated successfully" });
+      } catch (err) {
+        console.error("Error updating activity:", err);
+        res.status(500).send("Server error");
+      }
+    });
+  
+  // - REQUEST JOIN -
+    // Endpoint to fetch join requests for the host
+    app.get("/api/join-requests", authenticateToken, async (req, res) => {
+      try {
+        const userId = req.user.userId;
+        const result = await db.query(
+          `SELECT jr.id, jr.activity_id, jr.requester_id, ul.username, up.profile_photo, a.title AS activity_title
+          FROM join_requests jr
+          JOIN user_login ul ON jr.requester_id = ul.id
+          JOIN user_profile up ON ul.id = up.user_id
+          JOIN activity a ON jr.activity_id = a.id
+          WHERE a.user_id_host = $1 AND jr.status = 'pending'`,
+          [userId]
+        );
+        res.status(200).json(result.rows);
+      } catch (err) {
+        console.error("Error fetching join requests:", err);
+        res.status(500).send("Server error");
+      }
+    });
+
+    // Endpoint to create a join request
+    app.post("/api/join-requests", authenticateToken, async (req, res) => {
+      const { activity_id } = req.body;
+      const requester_id = req.user.userId;
+
+      try {
+        await db.query(
+          "INSERT INTO join_requests (activity_id, requester_id) VALUES ($1, $2)",
+          [activity_id, requester_id]
+        );
+
+        res.status(201).json({ message: "Join request sent successfully" });
+      } catch (err) {
+        console.error("Error creating join request:", err);
+        res.status(500).send("Server error");
+      }
+    });
+
+    // Endpoint to update join request status
+    app.put("/api/join-request/:id", authenticateToken, async (req, res) => {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      try {
+        const result = await db.query(
+          "UPDATE join_requests SET status = $1 WHERE id = $2 RETURNING *",
+          [status, id]
+        );
+        res.status(200).json(result.rows[0]);
+      } catch (err) {
+        console.error("Error updating join request:", err);
+        res.status(500).send("Server error");
+      }
+    });
+
+    // Endpoint to fetch pending join requests for the current user (we used chat gpt helps here)
+    app.get(
+      "/api/user-pending-requests/:userId",
+      authenticateToken,
+      async (req, res) => {
+        const userId = req.params.userId;
+
+        try {
+          const result = await db.query(
+            `SELECT jr.id, jr.activity_id, jr.requester_id, jr.status, a.title AS activity_title
+          FROM join_requests jr
+          JOIN activity a ON jr.activity_id = a.id
+          WHERE jr.requester_id = $1 AND jr.status = 'pending'`,
+            [userId]
+          );
+          res.status(200).json(result.rows);
+        } catch (err) {
+          console.error("Error fetching pending requests:", err);
+          res.status(500).send("Server error");
+        }
+      }
+    );
+
+    // Accept Join Request Endpoint (we used chat gpt helps here)
+    app.post(
+      "/api/join-requests/:id/accept",
+      authenticateToken,
+      async (req, res) => {
+        const { id } = req.params;
+
+        try {
+          const requestResult = await db.query(
+            "SELECT * FROM join_requests WHERE id = $1",
+            [id]
+          );
+          if (requestResult.rows.length === 0) {
+            return res.status(404).json({ error: "Join request not found" });
+          }
+
+          const request = requestResult.rows[0];
+          const { activity_id, requester_id } = request;
+
+          // Increment num_people_joined in activity table
+          await db.query(
+            "UPDATE activity SET num_people_joined = num_people_joined + 1 WHERE id = $1",
+            [activity_id]
+          );
+
+          // Update user's activity slots
+          const slotsResult = await db.query(
+            "SELECT activity_slot_1, activity_slot_2, activity_slot_3, activity_slot_4, activity_slot_5, activity_slot_6, activity_slot_7, activity_slot_8, activity_slot_9, activity_slot_10 FROM user_profile WHERE user_id = $1",
+            [requester_id]
+          );
+
+          const slots = slotsResult.rows[0];
+          let updated = false;
+          for (let i = 1; i <= 10; i++) {
+            if (slots[`activity_slot_${i}`] === null) {
+              await db.query(
+                `UPDATE user_profile SET activity_slot_${i} = $1, activities_joined = activities_joined + 1 WHERE user_id = $2`,
+                [activity_id, requester_id]
+              );
+              updated = true;
+              break;
+            }
+          }
+
+          if (!updated) {
+            return res
+              .status(400)
+              .json({ error: "User has joined too many activities" });
+          }
+
+          // Remove join request
+          await db.query("DELETE FROM join_requests WHERE id = $1", [id]);
+
+          res.status(200).json({ message: "Join request accepted" });
+        } catch (err) {
+          console.error("Error accepting join request:", err);
+          res.status(500).send("Server error");
+        }
+      }
+    );
+
+    // Reject Join Request Endpoint
+    app.post(
+      "/api/join-requests/:id/reject",
+      authenticateToken,
+      async (req, res) => {
+        const { id } = req.params;
+
+        try {
+          const result = await db.query(
+            "DELETE FROM join_requests WHERE id = $1 RETURNING *",
+            [id]
+          );
+          if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Join request not found" });
+          }
+
+          res.status(200).json({ message: "Join request rejected" });
+        } catch (err) {
+          console.error("Error rejecting join request:", err);
+          res.status(500).send("Server error");
+        }
+      }
+    );
+
+  // - USER LISTS -
+    // Endpoint to fetch user activity slots
+    app.get(
+      "/api/user-activity-slots/:userId",
+      authenticateToken,
+      async (req, res) => {
+        const { userId } = req.params;
+
+        try {
+          const result = await db.query(
+            "SELECT activity_slot_1, activity_slot_2, activity_slot_3, activity_slot_4, activity_slot_5, activity_slot_6, activity_slot_7, activity_slot_8, activity_slot_9, activity_slot_10 FROM user_profile WHERE user_id = $1",
+            [userId]
+          );
+
+          if (result.rows.length === 0) {
+            return res.status(404).json({ error: "User profile not found" });
+          }
+
+          res.status(200).json(result.rows[0]);
+        } catch (err) {
+          console.error("Error fetching user activity slots:", err);
+          res.status(500).send("Server error");
+        }
+      }
+    );
+
+    // Endpoint to fetch user that has joined the activity
+    app.get(
+      "/api/activity-users/:activityId",
+      authenticateToken,
+      async (req, res) => {
+        const { activityId } = req.params;
+        try {
+          const result = await db.query(
+            `
+          SELECT ul.id, ul.username, up.profile_photo
+          FROM user_login ul
+          JOIN user_profile up ON ul.id = up.user_id
+          WHERE $1 = ANY(array[up.activity_slot_1, up.activity_slot_2, up.activity_slot_3, 
+                              up.activity_slot_4, up.activity_slot_5, up.activity_slot_6, 
+                              up.activity_slot_7, up.activity_slot_8, up.activity_slot_9, 
+                              up.activity_slot_10])`,
+            [activityId]
+          );
+
+          res.status(200).json(result.rows);
+        } catch (err) {
+          console.error("Error fetching users:", err);
+          res.status(500).send("Server error");
+        }
+      }
+    );
+
+    // Endpoint to remove a user from an activity (we used chat gpt helps here)
+    app.delete(
+      "/api/remove-user/:activityId/:userId",
+      authenticateToken,
+      async (req, res) => {
+        const activityId = parseInt(req.params.activityId, 10); // Convert activityId to integer
+        const { userId } = req.params;
+
+        try {
+          await db.query("BEGIN");
+
+          // Decrement the number of people joined
+          await db.query(
+            "UPDATE activity SET num_people_joined = num_people_joined - 1 WHERE id = $1",
+            [activityId]
+          );
+
+          // Fetch the user's profile
+          const userProfileResult = await db.query(
+            "SELECT * FROM user_profile WHERE user_id = $1",
+            [userId]
+          );
+          const userProfile = userProfileResult.rows[0];
+
+          // Find the activity slot containing the activity ID and set it to NULL
+          const updatedSlots = Object.keys(userProfile)
+            .filter((key) => key.startsWith("activity_slot_"))
+            .reduce((acc, key) => {
+              acc[key] = userProfile[key] === activityId ? null : userProfile[key];
+              return acc;
+            }, {});
+
+          // Update the user's activity slots in the database
+          for (const [key, value] of Object.entries(updatedSlots)) {
+            if (value === null) {
+              const query = `UPDATE user_profile SET ${key} = NULL WHERE user_id = $1`;
+              await db.query(query, [userId]);
+            } else {
+              const query = `UPDATE user_profile SET ${key} = $1 WHERE user_id = $2`;
+              await db.query(query, [value, userId]);
+            }
+          }
+
+          await db.query(
+            "UPDATE user_profile SET activities_joined = activities_joined - 1 WHERE user_id = $1",
+            [userId]
+          );
+
+          await db.query("COMMIT");
+
+          res.status(200).json({ message: "User removed successfully" });
+        } catch (err) {
+          await db.query("ROLLBACK");
+          console.error("Error removing user:", err);
+          res.status(500).send("Server error");
+        }
+      }
+    );
+
+    // Endpoint to fetch all users excluding the current user
+    app.get("/api/users", authenticateToken, async (req, res) => {
+      const userId = req.user.userId;
+      try {
+        const result = await db.query(
+          "SELECT username, profile_photo FROM user_profile WHERE user_id != $1",
+          [userId]
+        );
+        res.status(200).json(result.rows);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        res.status(500).send("Server error");
+      }
+    });
+
+// PROFILE ENDPOINTS
 // Endpoint to get the user's profile
 app.get("/api/profile/:userId?", authenticateToken, async (req, res) => {
   const userId = req.params.userId || req.user.userId;
@@ -288,6 +774,7 @@ app.get("/api/profile/:userId?", authenticateToken, async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
 
 // Endpoint to fetch a user's profile by their ID
 app.get("/api/profile/:userId", authenticateToken, async (req, res) => {
@@ -353,133 +840,41 @@ app.put("/api/profile", authenticateToken, async (req, res) => {
   }
 });
 
-// Endpoint to get the current user's details including username and email
-app.get("/api/user-details", authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.userId;
-
-    // Fetch current user's username and email
-    const userResult = await db.query(
-      "SELECT username, email FROM user_login WHERE id = $1",
-      [userId]
-    );
-
-    if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    const user = userResult.rows[0];
-    res.json({ username: user.username, email: user.email });
-  } catch (err) {
-    console.error("Error fetching user details:", err);
-    res.status(500).send("Server error");
-  }
-});
-
-// Endpoint to fetch host's username and email based on activity's user_id_host
-app.get(
-  "/api/activity-host/:activityId",
+// Endpoint to upload profile photo
+app.post(
+  "/api/upload",
   authenticateToken,
+  upload.single("profile_photo"),
   async (req, res) => {
+    const userId = req.user.userId;
+    const profilePhotoUrl = req.file.location;
+
     try {
-      const { activityId } = req.params;
-
-      // Fetch activity details including host's user_id_host
-      const activityResult = await db.query(
-        "SELECT ul.username AS host_username, ul.email AS host_email " +
-          "FROM activity a " +
-          "JOIN user_login ul ON a.user_id_host = ul.id " +
-          "WHERE a.id = $1",
-        [activityId]
+      await db.query(
+        "UPDATE user_profile SET profile_photo = $1 WHERE user_id = $2",
+        [profilePhotoUrl, userId]
       );
-
-      if (activityResult.rows.length === 0) {
-        return res.status(404).json({ error: "Activity not found" });
-      }
-
-      const activity = activityResult.rows[0];
-      res.json({
-        host_username: activity.host_username,
-        host_email: activity.host_email,
+      res.status(200).json({
+        message: "Profile photo updated successfully",
+        profile_photo: profilePhotoUrl,
       });
     } catch (err) {
-      console.error("Error fetching host details:", err);
+      console.error("Error uploading profile photo:", err);
       res.status(500).send("Server error");
     }
   }
 );
 
-// Endpoint to fetch all users (usernames and ids)
-app.get("/api/users", async (req, res) => {
-  try {
-    const result = await db.query("SELECT id, username FROM user_login");
-    res.status(200).json(result.rows);
-  } catch (err) {
-    console.error("Error fetching users:", err);
-    res.status(500).send("Server error");
-  }
-});
-
-// Endpoint to update an activity
-app.put("/api/activities/:id", authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  const {
-    title,
-    act_desc,
-    location,
-    act_date,
-    act_time,
-    category,
-    ongoing_until,
-  } = req.body;
-  const userId = req.user.userId;
-
-  try {
-    // Check if the activity belongs to the logged-in user
-    const activityResult = await db.query(
-      "SELECT * FROM activity WHERE id = $1 AND user_id_host = $2",
-      [id, userId]
-    );
-
-    if (activityResult.rows.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "Activity not found or not authorized" });
-    }
-
-    // Update the activity
-    await db.query(
-      "UPDATE activity SET title = $1, act_desc = $2, location = $3, act_date = $4, act_time = $5, category = $6, ongoing_until = $7 WHERE id = $8",
-      [
-        title,
-        act_desc,
-        location,
-        act_date,
-        act_time,
-        category,
-        ongoing_until,
-        id,
-      ]
-    );
-
-    res.status(200).json({ message: "Activity updated successfully" });
-  } catch (err) {
-    console.error("Error updating activity:", err);
-    res.status(500).send("Server error");
-  }
-});
-
-// Comments endpoints
-
+// FORUM ENDPOINTS
 // Create a new comment
 app.post("/api/comments", authenticateToken, async (req, res) => {
-  const { content } = req.body;
+  const { content, tag } = req.body;
   const userId = req.user.userId;
 
   try {
     const result = await db.query(
-      "INSERT INTO comments (user_id, content) VALUES ($1, $2) RETURNING *",
-      [userId, content]
+      "INSERT INTO comments (user_id, content, tag) VALUES ($1, $2, $3) RETURNING *",
+      [userId, content, tag]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -487,6 +882,7 @@ app.post("/api/comments", authenticateToken, async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
 
 // Create a reply to a comment
 app.post(
@@ -510,12 +906,26 @@ app.post(
   }
 );
 
-// Get all comments with their replies
+// Get all comments with their replies, optionally filtered by tag
 app.get("/api/comments", async (req, res) => {
+  const { tag } = req.query;
+
   try {
-    const commentsResult = await db.query(
-      "SELECT c.id, c.content, c.created_at, u.username FROM comments c JOIN user_login u ON c.user_id = u.id ORDER BY c.created_at DESC"
-    );
+    let commentsQuery = `
+      SELECT c.id, c.content, c.created_at, u.username
+      FROM comments c
+      JOIN user_login u ON c.user_id = u.id
+    `;
+
+    if (tag) {
+      commentsQuery += " WHERE c.tag = $1";
+    }
+
+    commentsQuery += " ORDER BY c.created_at DESC";
+
+    const commentsResult = tag
+      ? await db.query(commentsQuery, [tag])
+      : await db.query(commentsQuery);
 
     const comments = commentsResult.rows;
 
@@ -534,320 +944,17 @@ app.get("/api/comments", async (req, res) => {
   }
 });
 
-// Endpoint to fetch join requests for the host
-app.get("/api/join-requests", authenticateToken, async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const result = await db.query(
-      `SELECT jr.id, jr.activity_id, jr.requester_id, ul.username, up.profile_photo, a.title AS activity_title
-       FROM join_requests jr
-       JOIN user_login ul ON jr.requester_id = ul.id
-       JOIN user_profile up ON ul.id = up.user_id
-       JOIN activity a ON jr.activity_id = a.id
-       WHERE a.user_id_host = $1 AND jr.status = 'pending'`,
-      [userId]
-    );
-    res.status(200).json(result.rows);
-  } catch (err) {
-    console.error("Error fetching join requests:", err);
-    res.status(500).send("Server error");
-  }
-});
-
-// Endpoint to create a join request
-app.post("/api/join-requests", authenticateToken, async (req, res) => {
-  const { activity_id } = req.body;
-  const requester_id = req.user.userId;
-
-  try {
-    await db.query(
-      "INSERT INTO join_requests (activity_id, requester_id) VALUES ($1, $2)",
-      [activity_id, requester_id]
-    );
-
-    res.status(201).json({ message: "Join request sent successfully" });
-  } catch (err) {
-    console.error("Error creating join request:", err);
-    res.status(500).send("Server error");
-  }
-});
-
-// Endpoint to update join request status
-app.put("/api/join-request/:id", authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  const { status } = req.body;
-
-  try {
-    const result = await db.query(
-      "UPDATE join_requests SET status = $1 WHERE id = $2 RETURNING *",
-      [status, id]
-    );
-    res.status(200).json(result.rows[0]);
-  } catch (err) {
-    console.error("Error updating join request:", err);
-    res.status(500).send("Server error");
-  }
-});
-
-// Endpoint to fetch pending join requests for the current user (we used chat gpt helps here)
-app.get(
-  "/api/user-pending-requests/:userId",
-  authenticateToken,
-  async (req, res) => {
-    const userId = req.params.userId;
-
-    try {
-      const result = await db.query(
-        `SELECT jr.id, jr.activity_id, jr.requester_id, jr.status, a.title AS activity_title
-       FROM join_requests jr
-       JOIN activity a ON jr.activity_id = a.id
-       WHERE jr.requester_id = $1 AND jr.status = 'pending'`,
-        [userId]
-      );
-      res.status(200).json(result.rows);
-    } catch (err) {
-      console.error("Error fetching pending requests:", err);
-      res.status(500).send("Server error");
-    }
-  }
-);
-
-// Accept Join Request Endpoint (we used chat gpt helps here)
-app.post(
-  "/api/join-requests/:id/accept",
-  authenticateToken,
-  async (req, res) => {
-    const { id } = req.params;
-
-    try {
-      const requestResult = await db.query(
-        "SELECT * FROM join_requests WHERE id = $1",
-        [id]
-      );
-      if (requestResult.rows.length === 0) {
-        return res.status(404).json({ error: "Join request not found" });
-      }
-
-      const request = requestResult.rows[0];
-      const { activity_id, requester_id } = request;
-
-      // Increment num_people_joined in activity table
-      await db.query(
-        "UPDATE activity SET num_people_joined = num_people_joined + 1 WHERE id = $1",
-        [activity_id]
-      );
-
-      // Update user's activity slots
-      const slotsResult = await db.query(
-        "SELECT activity_slot_1, activity_slot_2, activity_slot_3, activity_slot_4, activity_slot_5, activity_slot_6, activity_slot_7, activity_slot_8, activity_slot_9, activity_slot_10 FROM user_profile WHERE user_id = $1",
-        [requester_id]
-      );
-
-      const slots = slotsResult.rows[0];
-      let updated = false;
-      for (let i = 1; i <= 10; i++) {
-        if (slots[`activity_slot_${i}`] === null) {
-          await db.query(
-            `UPDATE user_profile SET activity_slot_${i} = $1, activities_joined = activities_joined + 1 WHERE user_id = $2`,
-            [activity_id, requester_id]
-          );
-          updated = true;
-          break;
-        }
-      }
-
-      if (!updated) {
-        return res
-          .status(400)
-          .json({ error: "User has joined too many activities" });
-      }
-
-      // Remove join request
-      await db.query("DELETE FROM join_requests WHERE id = $1", [id]);
-
-      res.status(200).json({ message: "Join request accepted" });
-    } catch (err) {
-      console.error("Error accepting join request:", err);
-      res.status(500).send("Server error");
-    }
-  }
-);
-
-// Reject Join Request Endpoint
-app.post(
-  "/api/join-requests/:id/reject",
-  authenticateToken,
-  async (req, res) => {
-    const { id } = req.params;
-
-    try {
-      const result = await db.query(
-        "DELETE FROM join_requests WHERE id = $1 RETURNING *",
-        [id]
-      );
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: "Join request not found" });
-      }
-
-      res.status(200).json({ message: "Join request rejected" });
-    } catch (err) {
-      console.error("Error rejecting join request:", err);
-      res.status(500).send("Server error");
-    }
-  }
-);
-
-// Endpoint to fetch user activity slots
-app.get(
-  "/api/user-activity-slots/:userId",
-  authenticateToken,
-  async (req, res) => {
-    const { userId } = req.params;
-
-    try {
-      const result = await db.query(
-        "SELECT activity_slot_1, activity_slot_2, activity_slot_3, activity_slot_4, activity_slot_5, activity_slot_6, activity_slot_7, activity_slot_8, activity_slot_9, activity_slot_10 FROM user_profile WHERE user_id = $1",
-        [userId]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: "User profile not found" });
-      }
-
-      res.status(200).json(result.rows[0]);
-    } catch (err) {
-      console.error("Error fetching user activity slots:", err);
-      res.status(500).send("Server error");
-    }
-  }
-);
-
-// Endpoint to fetch user that has joined the activity
-app.get(
-  "/api/activity-users/:activityId",
-  authenticateToken,
-  async (req, res) => {
-    const { activityId } = req.params;
-    try {
-      const result = await db.query(
-        `
-      SELECT ul.id, ul.username, up.profile_photo
-      FROM user_login ul
-      JOIN user_profile up ON ul.id = up.user_id
-      WHERE $1 = ANY(array[up.activity_slot_1, up.activity_slot_2, up.activity_slot_3, 
-                           up.activity_slot_4, up.activity_slot_5, up.activity_slot_6, 
-                           up.activity_slot_7, up.activity_slot_8, up.activity_slot_9, 
-                           up.activity_slot_10])`,
-        [activityId]
-      );
-
-      res.status(200).json(result.rows);
-    } catch (err) {
-      console.error("Error fetching users:", err);
-      res.status(500).send("Server error");
-    }
-  }
-);
-
-// Endpoint to remove a user from an activity (we used chat gpt helps here)
-app.delete(
-  "/api/remove-user/:activityId/:userId",
-  authenticateToken,
-  async (req, res) => {
-    const activityId = parseInt(req.params.activityId, 10); // Convert activityId to integer
-    const { userId } = req.params;
-
-    try {
-      await db.query("BEGIN");
-
-      // Decrement the number of people joined
-      await db.query(
-        "UPDATE activity SET num_people_joined = num_people_joined - 1 WHERE id = $1",
-        [activityId]
-      );
-
-      // Fetch the user's profile
-      const userProfileResult = await db.query(
-        "SELECT * FROM user_profile WHERE user_id = $1",
-        [userId]
-      );
-      const userProfile = userProfileResult.rows[0];
-
-      // Find the activity slot containing the activity ID and set it to NULL
-      const updatedSlots = Object.keys(userProfile)
-        .filter((key) => key.startsWith("activity_slot_"))
-        .reduce((acc, key) => {
-          acc[key] = userProfile[key] === activityId ? null : userProfile[key];
-          return acc;
-        }, {});
-
-      // Update the user's activity slots in the database
-      for (const [key, value] of Object.entries(updatedSlots)) {
-        if (value === null) {
-          const query = `UPDATE user_profile SET ${key} = NULL WHERE user_id = $1`;
-          await db.query(query, [userId]);
-        } else {
-          const query = `UPDATE user_profile SET ${key} = $1 WHERE user_id = $2`;
-          await db.query(query, [value, userId]);
-        }
-      }
-
-      await db.query(
-        "UPDATE user_profile SET activities_joined = activities_joined - 1 WHERE user_id = $1",
-        [userId]
-      );
-
-      await db.query("COMMIT");
-
-      res.status(200).json({ message: "User removed successfully" });
-    } catch (err) {
-      await db.query("ROLLBACK");
-      console.error("Error removing user:", err);
-      res.status(500).send("Server error");
-    }
-  }
-);
-
-// Endpoint to fetch all users excluding the current user
-app.get("/api/users", authenticateToken, async (req, res) => {
-  const userId = req.user.userId;
-  try {
-    const result = await db.query(
-      "SELECT username, profile_photo FROM user_profile WHERE user_id != $1",
-      [userId]
-    );
-    res.status(200).json(result.rows);
-  } catch (err) {
-    console.error("Error fetching users:", err);
-    res.status(500).send("Server error");
-  }
-});
-
-// Endpoint for sending a message
-app.post("/api/messages", authenticateToken, async (req, res) => {
-  const { to, content } = req.body;
-  const from = req.user.userId;
-
-  try {
-    const result = await db.query(
-      "INSERT INTO messages (from_user, to_user, content, timestamp) VALUES ($1, $2, $3, CURRENT_TIMESTAMP) RETURNING *",
-      [from, to, content]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error("Error sending message:", err);
-    res.status(500).send("Server error");
-  }
-});
-
-// Endpoint for fetching messages
+// CHAT ENDPOINTS
+// Endpoint for fetching messages between the current user and another user
 app.get("/api/messages/:userId", authenticateToken, async (req, res) => {
   const { userId } = req.params;
   const currentUser = req.user.userId;
 
   try {
     const result = await db.query(
-      "SELECT * FROM messages WHERE (from_user = $1 AND to_user = $2) OR (from_user = $2 AND to_user = $1) ORDER BY timestamp",
+      `SELECT * FROM messages 
+       WHERE (from_user = $1 AND to_user = $2) OR (from_user = $2 AND to_user = $1) 
+       ORDER BY message_date, timestamp`,
       [parseInt(currentUser, 10), parseInt(userId, 10)]
     );
     res.status(200).json(result.rows);
@@ -861,6 +968,7 @@ app.get("/api/messages/:userId", authenticateToken, async (req, res) => {
 app.get("/api/chat-users", authenticateToken, async (req, res) => {
   const currentUserId = req.user.userId;
   const targetUserId = req.query.targetUserId;
+  
   try {
     let result = await db.query(
       `SELECT DISTINCT u.id, u.username, up.profile_photo 
@@ -870,6 +978,7 @@ app.get("/api/chat-users", authenticateToken, async (req, res) => {
        WHERE (m.from_user = $1 OR m.to_user = $1) AND u.id != $1`,
       [currentUserId]
     );
+
     if (targetUserId) {
       const targetUserResult = await db.query(
         `SELECT u.id, u.username, up.profile_photo 
@@ -894,171 +1003,98 @@ app.get("/api/chat-users", authenticateToken, async (req, res) => {
   }
 });
 
-// Endpoint to check if the email exists and send reset email (we used chat gpt helps here)
-app.post("/api/check-email", async (req, res) => {
-  const { email } = req.body;
+// Endpoint for sending a message (with image upload to S3)
+app.post("/api/messages", authenticateToken, upload.single("image"), async (req, res) => {
+  const { to, content } = req.body;
+  const from = req.user.userId;
+  let imageUrl = null;
 
-  try {
-    // Check if the email exists in the user_login table
-    const result = await db.query("SELECT * FROM user_login WHERE email = $1", [
-      email,
-    ]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Email not found" });
-    }
-
-    const user = result.rows[0];
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 3600000); // Token valid for 1 hour
-
-    await db.query(
-      "INSERT INTO password_resets (user_id, token, expires_at) VALUES ($1, $2, $3)",
-      [user.id, token, expiresAt]
-    );
-
-    const resetLink = `${process.env.BASE_URL}/reset-password?token=${token}`;
-
-    res
-      .status(200)
-      .json({ message: "Email verification successful", resetLink });
-  } catch (error) {
-    console.error("Error checking email:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-// Endpoint to validate token
-app.get("/api/validate-token", async (req, res) => {
-  const { token } = req.query;
-
-  try {
-    const result = await db.query(
-      "SELECT * FROM password_resets WHERE token = $1",
-      [token]
-    );
-
-    if (
-      result.rows.length === 0 ||
-      new Date(result.rows[0].expires_at) < new Date()
-    ) {
-      return res.status(400).json({ error: "Invalid or expired token" });
-    }
-
-    res.status(200).json({ valid: true });
-  } catch (err) {
-    console.error("Error validating token:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-// Endpoint to reset password (we used chat gpt helps here)
-app.post("/api/reset-password", async (req, res) => {
-  const { token, password } = req.body;
-
-  if (!token || !password) {
-    return res.status(400).json({ error: "Token and password are required" });
+  // If an image is uploaded, store its URL from S3
+  if (req.file) {
+    imageUrl = req.file.location; // S3 file URL
   }
 
   try {
     const result = await db.query(
-      "SELECT * FROM password_resets WHERE token = $1",
-      [token]
+      "INSERT INTO messages (from_user, to_user, content, image_url, timestamp, message_date) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_DATE) RETURNING *",
+      [from, to, content || null, imageUrl || null]
     );
-
-    if (result.rows.length === 0) {
-      return res.status(400).json({ error: "Invalid or expired token" });
-    }
-
-    const resetRequest = result.rows[0];
-
-    if (resetRequest.expires_at < new Date()) {
-      return res.status(400).json({ error: "Token has expired" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    await db.query("UPDATE user_login SET password_hash = $1 WHERE id = $2", [
-      hashedPassword,
-      resetRequest.user_id,
-    ]);
-    await db.query("DELETE FROM password_resets WHERE token = $1", [token]);
-
-    res.status(200).json({ message: "Password reset successful" });
-  } catch (error) {
-    console.error("Error resetting password:", error);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-// Endpoint to update the status of activities based on the current date and time
-app.post("/api/update-activity-status", async (req, res) => {
-  try {
-    const now = new Date();
-
-    // Update activities that are past their scheduled date and time to 'done'
-    await db.query(
-      "UPDATE activity SET act_status = 'done' WHERE act_date < $1 OR (act_date = $1 AND act_time <= $2)",
-      [now.toISOString().split("T")[0], now.toTimeString().split(" ")[0]]
-    );
-
-    res.status(200).json({ message: "Activity statuses updated successfully" });
+    res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error("Error updating activity statuses:", err);
+    console.error("Error sending message:", err);
     res.status(500).send("Server error");
   }
 });
 
-// Cron job to automatically update activity statuses every 30 seconds (with chat gpt helps)
-cron.schedule("*/30 * * * * *", async () => {
-  try {
-    const now = new Date();
-    const result = await db.query(
-      "UPDATE activity SET act_status = 'done' WHERE act_date < $1 OR (act_date = $1 AND act_time <= $2) RETURNING id",
-      [now.toISOString().split("T")[0], now.toTimeString().split(" ")[0]]
-    );
+// MISCELLANEOUS ENDPOINTS
+  // Endpoint to update the status of activities based on the current date and time
+  app.post("/api/update-activity-status", async (req, res) => {
+    try {
+      const now = new Date();
 
-    const doneActivityIds = result.rows.map((row) => row.id);
+      // Update activities that are past their scheduled date and time to 'done'
+      await db.query(
+        "UPDATE activity SET act_status = 'done' WHERE act_date < $1 OR (act_date = $1 AND act_time <= $2)",
+        [now.toISOString().split("T")[0], now.toTimeString().split(" ")[0]]
+      );
 
-    if (doneActivityIds.length > 0) {
-      await clearUserActivitySlots(doneActivityIds);
+      res.status(200).json({ message: "Activity statuses updated successfully" });
+    } catch (err) {
+      console.error("Error updating activity statuses:", err);
+      res.status(500).send("Server error");
     }
-  } catch (err) {
-    console.error("Error updating activity statuses:", err);
-  }
-});
+  });
 
-// we used chat gpt helps here
-async function clearUserActivitySlots(doneActivityIds) {
-  try {
-    const users = await db.query("SELECT * FROM user_profile");
+  // Cron job to automatically update activity statuses every 30 seconds (with chat gpt helps)
+  cron.schedule("*/30 * * * * *", async () => {
+    try {
+      const now = new Date();
+      const result = await db.query(
+        "UPDATE activity SET act_status = 'done' WHERE act_date < $1 OR (act_date = $1 AND act_time <= $2) RETURNING id",
+        [now.toISOString().split("T")[0], now.toTimeString().split(" ")[0]]
+      );
 
-    for (const user of users.rows) {
-      let updateRequired = false;
-      let updates = [];
-      let activitiesJoined = user.activities_joined;
+      const doneActivityIds = result.rows.map((row) => row.id);
 
-      for (let i = 1; i <= 10; i++) {
-        const slot = user[`activity_slot_${i}`];
-        if (slot && doneActivityIds.includes(slot)) {
-          updates.push(`activity_slot_${i} = NULL`);
-          activitiesJoined--;
-          updateRequired = true;
+      if (doneActivityIds.length > 0) {
+        await clearUserActivitySlots(doneActivityIds);
+      }
+    } catch (err) {
+      console.error("Error updating activity statuses:", err);
+    }
+  });
+
+  // we used chat gpt helps here
+  async function clearUserActivitySlots(doneActivityIds) {
+    try {
+      const users = await db.query("SELECT * FROM user_profile");
+
+      for (const user of users.rows) {
+        let updateRequired = false;
+        let updates = [];
+        let activitiesJoined = user.activities_joined;
+
+        for (let i = 1; i <= 10; i++) {
+          const slot = user[`activity_slot_${i}`];
+          if (slot && doneActivityIds.includes(slot)) {
+            updates.push(`activity_slot_${i} = NULL`);
+            activitiesJoined--;
+            updateRequired = true;
+          }
+        }
+
+        if (updateRequired) {
+          updates.push(`activities_joined = ${activitiesJoined}`);
+          const updateQuery = `UPDATE user_profile SET ${updates.join(
+            ", "
+          )} WHERE id = ${user.id}`;
+          await db.query(updateQuery);
         }
       }
-
-      if (updateRequired) {
-        updates.push(`activities_joined = ${activitiesJoined}`);
-        const updateQuery = `UPDATE user_profile SET ${updates.join(
-          ", "
-        )} WHERE id = ${user.id}`;
-        await db.query(updateQuery);
-      }
+    } catch (err) {
+      console.error("Error clearing user activity slots:", err);
     }
-  } catch (err) {
-    console.error("Error clearing user activity slots:", err);
   }
-}
 
 // Serve the React app for all other routes
 app.get("*", (req, res) => {

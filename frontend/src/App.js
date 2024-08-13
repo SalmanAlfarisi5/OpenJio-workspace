@@ -16,7 +16,7 @@ import Forum from "./components/Forum";
 import Chat from "./components/Chat";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
-import ForumCtegories from "./components/ForumCategories";
+import ForumCategories from "./components/ForumCategories";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -32,10 +32,7 @@ const Home = () => {
           <button className="button" onClick={() => navigate("/activities")}>
             Activities
           </button>
-          <button
-            className="button"
-            onClick={() => navigate("/ForumCategories")}
-          >
+          <button className="button" onClick={() => navigate("/forum-categories")}>
             Forum
           </button>
           <button className="button" onClick={() => navigate("/chat")}>
@@ -62,14 +59,14 @@ const App = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/home" element={<Home />} />
         <Route path="/activities" element={<Activities />} />
-        <Route path="/forum" element={<Forum />} />
+        <Route path="/forum/:category" element={<Forum />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/:userId" element={<Profile />} />
         <Route path="/createactivity" element={<CreateActivity />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/ForumCategories" element={<ForumCtegories />} />
+        <Route path="/forum-categories" element={<ForumCategories />} />
       </Routes>
     </Router>
   );
