@@ -80,7 +80,6 @@ CREATE TABLE messages (
 	timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 	message_date DATE DEFAULT CURRENT_DATE,
 	image_url TEXT;
-
 );
 
 CREATE TABLE password_resets (

@@ -10,11 +10,15 @@ const Forum = () => {
   const [replyingTo, setReplyingTo] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const categoryTitle = location.state?.displayName || "Forum"; // This will change "Forum" to the category name
+
+  // Use the state passed from ForumCategories to get the displayName, fall back to "Forum" if undefined
+  const categoryTitle = location.state?.displayName || "Forum"; 
 
   const fetchComments = useCallback(async () => {
     try {
-      const response = await axios.get(`/api/comments?tag=${categoryTitle}`);
+      console.log(`Fetching comments for category: ${categoryTitle}`);
+      const response = await axios.get(`/api/comments?tag=${encodeURIComponent(categoryTitle)}`);
+      console.log('Fetched comments:', response.data); // Debug log
       setComments(response.data);
     } catch (error) {
       console.error("Error fetching comments:", error);
@@ -33,6 +37,7 @@ const Forum = () => {
     }
     try {
       const token = localStorage.getItem("token");
+      console.log(`Posting new comment with tag: ${categoryTitle}`);
       await axios.post(
         "/api/comments",
         { content: newComment, tag: categoryTitle },
@@ -70,41 +75,45 @@ const Forum = () => {
       <div className="Forum-container">
         <h1>{categoryTitle}</h1> {/* This will now dynamically display the category title */}
         <div className="comments-section">
-          {comments.map((comment) => (
-            <div key={comment.id} className="comment">
-              <p>
-                <strong>{comment.username}</strong> (
-                {new Date(comment.created_at).toLocaleString()}):{" "}
-                {comment.content}
-              </p>
-              <button onClick={() => setReplyingTo(comment.id)}>Reply</button>
-              {replyingTo === comment.id && (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleReplySubmit(comment.id);
-                  }}
-                >
-                  <textarea
-                    value={replyContent}
-                    onChange={(e) => setReplyContent(e.target.value)}
-                    placeholder="Write a reply..."
-                  />
-                  <button type="submit">Post Reply</button>
-                </form>
-              )}
-              {comment.replies &&
-                comment.replies.map((reply) => (
-                  <div key={reply.id} className="reply">
-                    <p>
-                      <strong>{reply.username}</strong> (
-                      {new Date(reply.created_at).toLocaleString()}):{" "}
-                      {reply.content}
-                    </p>
-                  </div>
-                ))}
-            </div>
-          ))}
+          {comments.length === 0 ? (
+            <p>No comments yet. Be the first to comment!</p>
+          ) : (
+            comments.map((comment) => (
+              <div key={comment.id} className="comment">
+                <p>
+                  <strong>{comment.username}</strong> (
+                  {new Date(comment.created_at).toLocaleString()}):{" "}
+                  {comment.content}
+                </p>
+                <button onClick={() => setReplyingTo(comment.id)}>Reply</button>
+                {replyingTo === comment.id && (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleReplySubmit(comment.id);
+                    }}
+                  >
+                    <textarea
+                      value={replyContent}
+                      onChange={(e) => setReplyContent(e.target.value)}
+                      placeholder="Write a reply..."
+                    />
+                    <button type="submit">Post Reply</button>
+                  </form>
+                )}
+                {comment.replies &&
+                  comment.replies.map((reply) => (
+                    <div key={reply.id} className="reply">
+                      <p>
+                        <strong>{reply.username}</strong> (
+                        {new Date(reply.created_at).toLocaleString()}):{" "}
+                        {reply.content}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            ))
+          )}
         </div>
         <form onSubmit={handleCommentSubmit}>
           <textarea
