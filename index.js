@@ -945,31 +945,16 @@ app.get("/api/comments", async (req, res) => {
 });
 
 // CHAT ENDPOINTS
-// Endpoint for sending a message
-app.post("/api/messages", authenticateToken, async (req, res) => {
-  const { to, content } = req.body;
-  const from = req.user.userId;
-
-  try {
-    const result = await db.query(
-      "INSERT INTO messages (from_user, to_user, content, timestamp) VALUES ($1, $2, $3, CURRENT_TIMESTAMP) RETURNING *",
-      [from, to, content]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error("Error sending message:", err);
-    res.status(500).send("Server error");
-  }
-});
-
-// Endpoint for fetching messages
+// Endpoint for fetching messages between the current user and another user
 app.get("/api/messages/:userId", authenticateToken, async (req, res) => {
   const { userId } = req.params;
   const currentUser = req.user.userId;
 
   try {
     const result = await db.query(
-      "SELECT * FROM messages WHERE (from_user = $1 AND to_user = $2) OR (from_user = $2 AND to_user = $1) ORDER BY timestamp",
+      `SELECT * FROM messages 
+       WHERE (from_user = $1 AND to_user = $2) OR (from_user = $2 AND to_user = $1) 
+       ORDER BY message_date, timestamp`,
       [parseInt(currentUser, 10), parseInt(userId, 10)]
     );
     res.status(200).json(result.rows);
@@ -983,6 +968,7 @@ app.get("/api/messages/:userId", authenticateToken, async (req, res) => {
 app.get("/api/chat-users", authenticateToken, async (req, res) => {
   const currentUserId = req.user.userId;
   const targetUserId = req.query.targetUserId;
+  
   try {
     let result = await db.query(
       `SELECT DISTINCT u.id, u.username, up.profile_photo 
@@ -992,6 +978,7 @@ app.get("/api/chat-users", authenticateToken, async (req, res) => {
        WHERE (m.from_user = $1 OR m.to_user = $1) AND u.id != $1`,
       [currentUserId]
     );
+
     if (targetUserId) {
       const targetUserResult = await db.query(
         `SELECT u.id, u.username, up.profile_photo 
@@ -1012,6 +999,29 @@ app.get("/api/chat-users", authenticateToken, async (req, res) => {
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Error fetching chat users:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+// Endpoint for sending a message (with image upload to S3)
+app.post("/api/messages", authenticateToken, upload.single("image"), async (req, res) => {
+  const { to, content } = req.body;
+  const from = req.user.userId;
+  let imageUrl = null;
+
+  // If an image is uploaded, store its URL from S3
+  if (req.file) {
+    imageUrl = req.file.location; // S3 file URL
+  }
+
+  try {
+    const result = await db.query(
+      "INSERT INTO messages (from_user, to_user, content, image_url, timestamp, message_date) VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_DATE) RETURNING *",
+      [from, to, content || null, imageUrl || null]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error sending message:", err);
     res.status(500).send("Server error");
   }
 });
