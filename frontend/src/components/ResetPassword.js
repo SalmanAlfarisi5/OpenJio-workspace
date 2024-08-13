@@ -24,7 +24,10 @@ const ResetPassword = () => {
       setMessage("Passwords do not match");
       return;
     }
-
+    if (password.length < 8) {
+      setMessage("Password must be at least 8 characters");
+      return;
+    }
     try {
       await axios.post("/api/reset-password", { token, password });
       setMessage("Password reset successful");
