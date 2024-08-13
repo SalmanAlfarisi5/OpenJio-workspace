@@ -78,7 +78,9 @@ CREATE TABLE messages (
 	to_user INT,
 	content TEXT,
 	timestamp TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-	message_date DATE DEFAULT CURRENT_DATE
+	message_date DATE DEFAULT CURRENT_DATE,
+	image_url TEXT;
+
 );
 
 CREATE TABLE password_resets (
