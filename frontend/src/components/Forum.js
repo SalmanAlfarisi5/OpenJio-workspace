@@ -12,13 +12,15 @@ const Forum = () => {
   const location = useLocation();
 
   // Use the state passed from ForumCategories to get the displayName, fall back to "Forum" if undefined
-  const categoryTitle = location.state?.displayName || "Forum"; 
+  const categoryTitle = location.state?.displayName || "Forum";
 
   const fetchComments = useCallback(async () => {
     try {
       console.log(`Fetching comments for category: ${categoryTitle}`);
-      const response = await axios.get(`/api/comments?tag=${encodeURIComponent(categoryTitle)}`);
-      console.log('Fetched comments:', response.data); // Debug log
+      const response = await axios.get(
+        `/api/comments?tag=${encodeURIComponent(categoryTitle)}`
+      );
+      console.log("Fetched comments:", response.data); // Debug log
       setComments(response.data);
     } catch (error) {
       console.error("Error fetching comments:", error);
@@ -73,7 +75,8 @@ const Forum = () => {
   return (
     <div className="Forum-page">
       <div className="Forum-container">
-        <h1>{categoryTitle}</h1> {/* This will now dynamically display the category title */}
+        <h1>{categoryTitle}</h1>{" "}
+        {/* This will now dynamically display the category title */}
         <div className="comments-section">
           {comments.length === 0 ? (
             <p>No comments yet. Be the first to comment!</p>
@@ -85,7 +88,12 @@ const Forum = () => {
                   {new Date(comment.created_at).toLocaleString()}):{" "}
                   {comment.content}
                 </p>
-                <button onClick={() => setReplyingTo(comment.id)}>Reply</button>
+                <button
+                  className="reply-button"
+                  onClick={() => setReplyingTo(comment.id)}
+                >
+                  <img src="../reply.png" alt="Reply" />
+                </button>
                 {replyingTo === comment.id && (
                   <form
                     onSubmit={(e) => {
@@ -123,7 +131,10 @@ const Forum = () => {
           />
           <button type="submit">Post Comment</button>
         </form>
-        <button className="return-button" onClick={() => navigate("/forum-categories")}>
+        <button
+          className="return-button"
+          onClick={() => navigate("/forum-categories")}
+        >
           Return
         </button>
       </div>

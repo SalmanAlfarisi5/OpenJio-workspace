@@ -84,6 +84,19 @@
     .logo {
         display: none;
     }
+
+    .search-bar {
+        display: none;
+    }
+
+    .sort-order {
+        display: none;
+    }
+
+    .Profile {
+        display: none;
+    }
+
 }
 
 .activities {
@@ -583,33 +596,46 @@
 
 /* New CSS for image handling */
 .chat-image {
-    max-width: 200px; /* Limit the width of the image */
-    max-height: 200px; /* Limit the height of the image */
+    max-width: 200px;
+    /* Limit the width of the image */
+    max-height: 200px;
+    /* Limit the height of the image */
     border-radius: 5px;
-    cursor: pointer; /* Change cursor to indicate the image is clickable */
+    cursor: pointer;
+    /* Change cursor to indicate the image is clickable */
 }
 
 .chat-image:hover {
-    opacity: 0.8; /* Add a hover effect to indicate interactivity */
+    opacity: 0.8;
+    /* Add a hover effect to indicate interactivity */
 }
 
 /* Modal styling for full-size image view */
 .modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
+    display: none;
+    /* Hidden by default */
+    position: fixed;
+    /* Stay in place */
+    z-index: 1000;
+    /* Sit on top */
     left: 0;
     top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0, 0, 0, 0.9); /* Black background with opacity */
+    width: 100%;
+    /* Full width */
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.9);
+    /* Black background with opacity */
 }
 
 .modal-content {
-    margin: 15% auto; /* 15% from the top and centered */
+    margin: 15% auto;
+    /* 15% from the top and centered */
     display: block;
-    width: 80%; /* Max width */
+    width: 80%;
+    /* Max width */
     max-width: 700px;
 }
 
@@ -661,8 +687,9 @@
     margin-top: 20px;
 }
 
-.comment,
-.reply {
+.comment {
+    position: relative;
+    flex-direction: column;
     padding: 15px;
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -670,8 +697,36 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
 .reply {
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-left: 30px;
+}
+
+.reply-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+}
+
+.reply-button img {
+    width: 24px;
+    height: 24px;
+    display: block;
 }
 
 textarea {
