@@ -8,8 +8,8 @@ const Chat = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [image, setImage] = useState(null); 
-  const [modalImage, setModalImage] = useState(null); 
+  const [image, setImage] = useState(null);
+  const [modalImage, setModalImage] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = parseInt(localStorage.getItem("user_id"), 10);
@@ -55,7 +55,8 @@ const Chat = () => {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
           });
-          setMessages(response.data);
+          const filteredMessages = response.data.filter((msg) => msg.timestamp && new Date(msg.timestamp).toString() !== "Invalid Date");
+          setMessages(filteredMessages);
         } catch (error) {
           if (error.response && error.response.status === 401) {
             navigate("/login");
@@ -79,12 +80,51 @@ const Chat = () => {
     }
   }, [location.state, users, handleUserClick]);
 
+  useEffect(() => {
+    let intervalId;
+    if (selectedUser) {
+      intervalId = setInterval(async () => {
+        if (messages.length > 0) {
+          const lastTimestamp = messages[messages.length - 1].timestamp;
+          try {
+            const response = await axios.get(
+              `/api/messages/${selectedUser.id}/since/${lastTimestamp}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              }
+            );
+
+            const newMessages = response.data.filter((msg) => msg.timestamp && new Date(msg.timestamp).toString() !== "Invalid Date");
+
+            // Filter out any duplicates
+            const updatedMessages = newMessages.filter(
+              (msg) =>
+                !messages.some((existingMsg) => existingMsg.id === msg.id)
+            );
+
+            if (updatedMessages.length > 0) {
+              setMessages((prevMessages) => [
+                ...prevMessages,
+                ...updatedMessages,
+              ]);
+            }
+          } catch (error) {
+            console.error("Error fetching new messages:", error);
+          }
+        }
+      }, 2000); // Fetch new messages every 2 seconds
+    }
+    return () => clearInterval(intervalId); // Cleanup the interval on component unmount
+  }, [selectedUser, messages]);
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (newMessage.trim() !== "" || image) {
       const formData = new FormData();
       formData.append("to", selectedUser.id);
-      formData.append("content", newMessage || ""); 
+      formData.append("content", newMessage || "");
       if (image) {
         formData.append("image", image);
       }
@@ -98,7 +138,7 @@ const Chat = () => {
         });
         setMessages([...messages, response.data]);
         setNewMessage("");
-        setImage(null); 
+        setImage(null);
       } catch (error) {
         console.error("Error sending message:", error);
         if (error.response && error.response.status === 401) {
@@ -115,27 +155,29 @@ const Chat = () => {
   };
 
   const handleImageChange = (e) => {
-    setImage(e.target.files[0]); 
+    setImage(e.target.files[0]);
   };
 
   const handleImageClick = (imageUrl) => {
-    setModalImage(imageUrl); 
-    document.getElementById("imageModal").style.display = "block"; 
+    setModalImage(imageUrl);
+    document.getElementById("imageModal").style.display = "block";
   };
 
   const closeModal = () => {
-    setModalImage(null); 
-    document.getElementById("imageModal").style.display = "none"; 
+    setModalImage(null);
+    document.getElementById("imageModal").style.display = "none";
   };
 
   const groupMessagesByDate = (messages) => {
     const groupedMessages = {};
     messages.forEach((message) => {
       const date = new Date(message.message_date).toDateString();
-      if (!groupedMessages[date]) {
-        groupedMessages[date] = [];
+      if (new Date(message.message_date).toString() !== "Invalid Date") {
+        if (!groupedMessages[date]) {
+          groupedMessages[date] = [];
+        }
+        groupedMessages[date].push(message);
       }
-      groupedMessages[date].push(message);
     });
     return groupedMessages;
   };

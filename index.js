@@ -1026,6 +1026,26 @@ app.post("/api/messages", authenticateToken, upload.single("image"), async (req,
   }
 });
 
+// Endpoint for fetching new messages since the last message's timestamp
+app.get("/api/messages/:userId/since/:timestamp", authenticateToken, async (req, res) => {
+  const { userId, timestamp } = req.params;
+  const currentUser = req.user.userId;
+
+  try {
+    const result = await db.query(
+      `SELECT * FROM messages 
+       WHERE ((from_user = $1 AND to_user = $2) OR (from_user = $2 AND to_user = $1)) 
+       AND timestamp > $3 
+       ORDER BY message_date, timestamp`,
+      [parseInt(currentUser, 10), parseInt(userId, 10), timestamp]
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching new messages:", err);
+    res.status(500).send("Server error");
+  }
+});
+
 // MISCELLANEOUS ENDPOINTS
   // Endpoint to update the status of activities based on the current date and time
   app.post("/api/update-activity-status", async (req, res) => {
